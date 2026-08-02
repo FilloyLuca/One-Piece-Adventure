@@ -1,0 +1,739 @@
+:root {
+  --wood-dark: #2b1704;
+  --wood-medium: #4a2a0c;
+  --wood-light: #6e4219;
+  --parchment-bg: #f4e4bc;
+  --parchment-border: #d8b884;
+  --parchment-dark: #c8a261;
+  --wanted-bg: #e6d3a7;
+  --ink-color: #2c1d11;
+  --gold: #d4af37;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  /* 🌊 CHANCE TA COULEUR D'OCÉAN ICI */
+  --ocean-color: #1875f9; /* Essaie par exemple: #004d40 (vert mer) ou #1a365d (bleu nuit) */
+  --wave-color: rgba(255, 255, 255, 0.15); /* Couleur/opacité des vagues */
+}
+
+body {
+  font-family: 'Cinzel', serif;
+  color: var(--ink-color);
+  min-height: 100vh;
+  padding: 0; /* plus de padding, le cabin-frame gère son propre espacement interne */
+
+  background-color: #3b2312;
+  background-attachment: fixed;
+  background-image: 
+    radial-gradient(ellipse at center, transparent 50%, rgba(10, 5, 2, 0.8) 100%),
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 76px,
+      rgba(15, 8, 3, 0.85) 76px,
+      rgba(0, 0, 0, 0.9) 78px,
+      transparent 80px
+    ),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.05 0.95' numOctaves='2' result='noise'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.07 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+}
+
+.cabin-frame {
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto; /* recentre horizontalement */
+  padding: 35px;
+  position: relative;
+}
+
+/* En-tête */
+.ship-header {
+  text-align: center;
+  margin-bottom: 25px;
+}
+
+.jolly-roger {
+  font-size: 2.5rem;
+  margin-bottom: 5px;
+}
+
+.game-title {
+  font-family: 'Pirata One', cursive;
+  font-size: 3rem;
+  color: #f7e7ce;
+  text-shadow: 2px 2px 4px #000, 0 0 10px var(--gold);
+  letter-spacing: 2px;
+}
+
+.tagline {
+  font-style: italic;
+  color: #c9ad8d;
+}
+
+/* Plaques de bois (Navigation) */
+.wood-nav {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+/* 🏷️ PLAQUES DE BOIS (Réactives et interactives) */
+.wood-plaque {
+  position: relative;
+  z-index: 10; /* Assure que le bouton reste au-dessus des calques de fond */
+  
+  background: linear-gradient(180deg, #6e3d1b 0%, #4a2710 100%);
+  color: #f7e3c3;
+  border: 2px solid #281408;
+  border-radius: 4px;
+  padding: 12px 24px;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  outline: none;
+  text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+  
+  /* Relief 3D */
+  box-shadow: 
+    0 5px 0 #1a0c05, 
+    0 8px 15px rgba(0, 0, 0, 0.6);
+  
+  /* Transition fluide */
+  transition: transform 0.15s ease, background 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* ⚡ EFFET AU SURVOL (Hover) */
+.wood-plaque:hover {
+  transform: translateY(-4px); /* La plaque se soulève[cite: 1] */
+  background: linear-gradient(180deg, #8a4d22 0%, #5d3114 100%); /* Éclaircissement[cite: 1] */
+  color: #ffffff;
+  box-shadow: 
+    0 9px 0 #1a0c05, 
+    0 15px 20px rgba(0, 0, 0, 0.7); /* L'ombre grandit[cite: 1] */
+}
+
+/* 🖱️ EFFET AU CLIC (Active) */
+.wood-plaque:active {
+  transform: translateY(2px);
+  box-shadow: 
+    0 3px 0 #1a0c05, 
+    0 5px 8px rgba(0, 0, 0, 0.5);
+}
+
+/* Sections */
+.main-content {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.menu-section {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+
+/* Affiche WANTED */
+.wanted-poster {
+  background-color: var(--wanted-bg, #e6d3a7);
+  width: 100%;
+  max-width: 600px;
+  padding: 30px;
+  border: 1px solid #b89b68;
+  border-radius: 4px;
+  margin: 0 auto;
+  
+  box-shadow: 
+    0 15px 35px rgba(0, 0, 0, 0.7), 
+    inset 0 0 40px rgba(139, 94, 60, 0.25);
+    
+  text-align: center;
+  color: var(--ink-color, #2c1d11);
+  
+  /* 🏴‍☠️ LE RETOUR DU PENCHANT PIRATE */
+  transform: rotate(-1.5deg); 
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+/* ⚡ Petit effet sympa : elle se redresse légèrement quand on passe la souris dessus */
+.wanted-poster:hover {
+  transform: rotate(0deg) scale(1.01);
+  box-shadow: 
+    0 20px 40px rgba(0, 0, 0, 0.8), 
+    inset 0 0 40px rgba(139, 94, 60, 0.25);
+}
+
+/* 🏷️ Alignement des lignes d'informations (Nom, Stats, etc.) */
+.wanted-poster .log-entry {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-bottom: 1px dashed #b89b68;
+  font-family: 'Cinzel', serif;
+}
+
+.wanted-poster .log-entry:last-of-type {
+  border-bottom: none;
+}
+
+.wanted-poster .log-day {
+  font-weight: bold;
+  color: #7a2318;
+}
+
+.wanted-poster:hover {
+  transform: rotate(0deg) scale(1.02);
+}
+
+.wanted-title {
+  font-family: 'Rye', cursive;
+  font-size: 2.2rem;
+  color: #3d2314;
+  letter-spacing: 3px;
+  line-height: 1;
+  margin-bottom: 10px;
+}
+
+.wanted-avatar {
+  width: 100%;
+  height: 160px;
+  background-color: #cfbc8e;
+  border: 3px solid #5c4333;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.avatar-placeholder {
+  font-size: 4rem;
+}
+
+.wanted-name {
+  font-family: 'Cinzel', serif;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  margin-bottom: 5px;
+}
+
+.bounty-label {
+  font-size: 0.65rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.bounty-amount {
+  font-family: 'Rye', cursive;
+  font-size: 1rem;
+  color: #4a150e;
+  margin-bottom: 15px;
+}
+
+.wanted-btn {
+  background: #4a150e;
+  color: #fff;
+  border: none;
+  padding: 8px 15px;
+  font-family: 'Cinzel', serif;
+  cursor: pointer;
+  width: 100%;
+  transition: background 0.2s;
+}
+
+.wanted-btn:hover {
+  background: #7a2318;
+}
+
+/* Effet Parchemin (Général) */
+.parchment-scroll {
+  background-color: var(--parchment-bg);
+  border: 2px solid var(--parchment-dark);
+  border-radius: 2px;
+  padding: 25px;
+  box-shadow: 
+    inset 0 0 30px var(--parchment-dark),
+    5px 5px 15px rgba(0,0,0,0.4);
+  position: relative;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+.main-scroll {
+  max-width: 300px;
+  text-align: center;
+}
+
+.parchment-btn {
+  display: inline-block;
+  margin-top: 15px;
+  
+  /* 📜 Fond style parchemin / cuir clair */
+  background: linear-gradient(180deg, #fce8cc 0%, #e5c9a1 100%);
+  color: #2b1704; /* Texte marron très foncé */
+  
+  /* Contour et typographie */
+  border: 2px solid #5c3517;
+  border-radius: 4px;
+  padding: 10px 20px;
+  font-family: 'Cinzel', serif;
+  font-weight: bold;
+  font-size: 0.95rem;
+  letter-spacing: 1px;
+  cursor: pointer;
+  
+  /* Relief et ombre pour le détacher du fond (mer ou parchemin) */
+  box-shadow: 
+    0 4px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.6);
+    
+  transition: all 0.2s ease;
+}
+
+/* ⚡ Effet au survol (Hover) */
+.parchment-btn:hover {
+  background: linear-gradient(180deg, #ffffff 0%, #f2d2a4 100%);
+  border-color: #2b1704;
+  transform: translateY(-2px);
+  box-shadow: 
+    0 6px 12px rgba(0, 0, 0, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  color: #000000;
+}
+
+/* 🖱️ Clic */
+.parchment-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.4);
+}
+
+/* En jeu : Dialogues & Choix */
+.gameplay-section {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.dialogue-box .question {
+  margin-top: 15px;
+  font-weight: bold;
+}
+
+.choices-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Bandes de parchemin pour les choix */
+.parchment-strip {
+  background-color: var(--parchment-bg);
+  border: 1px solid var(--parchment-dark);
+  padding: 12px 20px;
+  text-align: left;
+  font-family: 'Cinzel', serif;
+  font-size: 1rem;
+  color: var(--ink-color);
+  cursor: pointer;
+  box-shadow: inset 0 0 15px var(--parchment-dark), 2px 3px 5px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+}
+
+.parchment-strip:hover {
+  transform: translateX(8px);
+  background-color: #fff4d4;
+  box-shadow: inset 0 0 10px var(--parchment-dark), 4px 5px 10px rgba(0,0,0,0.4);
+}
+
+/* Panthéon : Journal de bord */
+.logbook {
+  background: #ebd2be;
+  border: 4px solid var(--wood-dark);
+  padding: 30px;
+  box-shadow: inset 0 0 50px #b58c68, 0 10px 20px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.logbook-title {
+  text-align: center;
+  font-family: 'Pirata One', cursive;
+  font-size: 2rem;
+  border-bottom: 2px solid var(--ink-color);
+  padding-bottom: 10px;
+  margin-bottom: 20px;
+}
+
+.log-entry {
+  margin-bottom: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px dashed #9c7756;
+}
+
+.log-entry:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.log-day {
+  font-weight: bold;
+  display: block;
+  font-size: 0.9rem;
+  color: #7a2318;
+}
+
+.fiche-permanente-wrapper {
+  display: none;
+  margin-bottom: 20px;
+}
+
+/* nouveau conteneur interne pour centrer et limiter la largeur */
+.fiche-permanente-inner {
+  max-width: 900px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.fiche-permanente {
+  width: 100%;
+  box-sizing: border-box;
+  background-color: var(--parchment-bg);
+  border: 2px solid var(--parchment-dark);
+  border-radius: 4px;
+  padding: 14px 18px;
+  color: var(--ink-color);
+  box-shadow: inset 0 0 20px var(--parchment-dark);
+}
+
+#jeu {
+  /* padding-top: 200px;  /*hauteur approximative de la bannière (bouton + parchemin), ajuste si besoin */
+}
+
+#titreScene {
+  display: none; /* le titre est déjà dans .scene-card */
+}
+
+#btnRetourMenu {
+  display: block;
+  margin: 0 auto 10px;
+}
+
+.fiche-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.fiche-nom {
+  font-family: 'Pirata One', cursive;
+  font-size: 1.3rem;
+}
+
+.fiche-stats-rapides {
+  font-size: 0.85rem;
+  color: #c9ad8d;
+}
+
+.fiche-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 10px 0;
+}
+
+/* Choix indisponible : requis manquant */
+.choix-verrouille {
+  opacity: 0.45;
+  cursor: not-allowed;
+  filter: grayscale(60%);
+}
+
+.choix-condition-indisponible {
+  display: block;
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-top: 4px;
+  color: #6b5840;
+}
+
+/* Choix interdit : bloqué par une condition active du joueur */
+.choix-interdit {
+  opacity: 0.55;
+  cursor: not-allowed;
+  border-color: #a13a2b !important;
+  background: linear-gradient(180deg, #f4dcd6 0%, #e0b8ae 100%) !important;
+}
+
+.choix-condition-interdit {
+  display: block;
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-top: 4px;
+  color: #a13a2b;
+  font-weight: bold;
+}
+
+/* Choix spécial : requis rempli, débloqué */
+.choix-special {
+  border-color: #b98a1f !important;
+  box-shadow: 0 0 0 1px #b98a1f, inset 0 0 15px var(--parchment-dark), 2px 3px 5px rgba(0,0,0,0.3);
+}
+
+.choix-condition-special {
+  display: block;
+  font-size: 0.7rem;
+  font-style: italic;
+  margin-top: 4px;
+  color: #b98a1f;
+  font-weight: bold;
+}
+
+.badge-objet {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border: 1px solid #4a2710;
+  color: #4a2710;
+  background: rgba(74, 39, 16, 0.08);
+}
+
+.badge-competence {
+  background: rgba(74, 21, 14, 0.08);
+  border: 1px solid #7a2318;
+  color: #7a2318;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+}
+
+.badge-relation {
+  display: inline-block;
+  border-radius: 20px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  border: 1px solid;
+}
+
+.badge-vide {
+  color: #7d8ba1;
+  font-size: 0.8rem;
+  font-style: italic;
+}
+
+.fiche-detail-btn {
+  margin-top: 5px;
+  font-size: 0.8rem;
+  padding: 6px 14px;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.75);
+  z-index: 999;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+}
+
+.modal-contenu {
+  max-width: 500px;
+  width: 100%;
+}
+
+.scene-card {
+  background-color: var(--parchment-bg);
+  border: 2px solid var(--parchment-dark);
+  border-radius: 10px;
+  padding: 25px;
+  box-shadow:
+    inset 0 0 30px var(--parchment-dark),
+    5px 5px 15px rgba(0, 0, 0, 0.4);
+}
+
+.scene-tag {
+  display: inline-block;
+  font-size: 0.7rem;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 20px;
+  margin-bottom: 14px;
+  border: 1px solid currentColor;
+  background: currentColor;
+}
+
+/* Chaque variante définit sa propre couleur de texte + fond léger via currentColor */
+.scene-tag {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+}
+
+.tag-moment-de-vie   { color: #6b4f9e; } /* violet */
+.tag-rencontre       { color: #1c7a5e; } /* vert */
+.tag-danger          { color: #a13a2b; } /* rouge/brun */
+.tag-exploration     { color: #b98a1f; } /* doré */
+.tag-combat          { color: #8b1e1e; } /* rouge foncé */
+.tag-defaut          { color: #7a2318; } /* couleur par défaut, comme avant */
+
+.scene-titre {
+  font-family: 'Pirata One', cursive;
+  font-size: 1.8rem;
+  color: #4a150e;
+  margin-bottom: 12px;
+}
+
+.scene-texte {
+  line-height: 1.5;
+  margin-bottom: 20px;
+}
+
+.scene-choix {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tag-creation {
+  color: #2c5f8a;
+  border-color: #2c5f8a;
+  background: rgba(44, 95, 138, 0.1);
+}
+
+.effet-pill {
+  display: inline-block;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  margin: 4px 6px 4px 0;
+  border: 1px solid;
+}
+
+.effet-positif {
+  color: #1c7a5e;
+  border-color: #1c7a5e;
+  background: rgba(28, 122, 94, 0.1);
+}
+
+.effet-negatif {
+  color: #a13a2b;
+  border-color: #a13a2b;
+  background: rgba(161, 58, 43, 0.1);
+}
+
+.effet-competence {
+  color: #6b4f9e;
+  border-color: #6b4f9e;
+  background: rgba(107, 79, 158, 0.1);
+}
+
+.effet-relation {
+  color: #b98a1f;
+  border-color: #b98a1f;
+  background: rgba(185, 138, 31, 0.1);
+}
+
+.resultat-card {
+  background-color: var(--parchment-bg);
+  border: 2px solid var(--parchment-dark);
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 15px;
+}
+
+.resultat-texte {
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.badge-race {
+  color: #4a2710;
+  border-color: #4a2710;
+  background: rgba(74, 39, 16, 0.1);
+}
+
+.badge-classe {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  border: 1px solid;
+  margin-left: 6px;
+  vertical-align: middle;
+}
+
+/* Le titre séparé au-dessus n'est plus utile, tout est dans la card */
+#titreScene {
+  display: none;
+}
+
+.panneau-audio {
+  position: fixed;
+  top: 50%;
+  right: 15px;
+  transform: translateY(-50%);
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  background: #3b2312;
+  border: 2px solid #201107;
+  border-radius: 30px;
+  padding: 15px 8px;
+  box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+}
+
+#volumeSlider {
+  writing-mode: vertical-lr;
+  direction: rtl;
+  width: 8px;
+  height: 100px;
+  accent-color: var(--gold);
+  cursor: pointer;
+}
+
+.volume-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid var(--gold);
+  background: linear-gradient(180deg, #6e3d1b 0%, #4a2710 100%);
+  color: #f7e3c3;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+
+.volume-btn:hover {
+  transform: scale(1.1);
+  background: linear-gradient(180deg, #8a4d22 0%, #5d3114 100%);
+}
+
+.volume-btn:active {
+  transform: scale(0.95);
+}

@@ -1,0 +1,367 @@
+# 📖 Guide du projet — One Piece Adventure
+
+Ce document explique comment fonctionne le jeu et comment ajouter ou modifier du contenu : nouvelles scènes, événements, stats, conditions de choix, classes, races, fruits du démon, objets, relations, etc.
+
+Il est pensé pour être complété au fur et à mesure des ajouts futurs — chaque nouvelle fonctionnalité doit idéalement avoir sa section ici.
+
+---
+
+## 🗂️ Structure des fichiers
+
+```
+index.html                     → structure HTML de la page
+style.css                      → tout le style visuel (bois, parchemin, badges...)
+
+js/
+  etat-jeu.js                  → déclare SCENES = {} et EVENEMENTS = [] (vide, rempli ensuite)
+  audio.js                     → gestion de l'ambiance sonore et de la playlist musicale
+  donnees/
+    classes.js                 → définit CLASSES et CLASSES_FRUIT
+    arc1.js                    → contenu narratif de l'arc 1 (scènes + événements)
+    arc2.js, arc3.js...        → futurs arcs, même structure que arc1.js
+  creation-personnage.js       → écran de création de personnage + état initial du joueur (RACES, ORIGINES, POSTES, ENTOURAGES)
+  moteur-scenes.js             → toute la logique du jeu (affichage, choix, effets, fins)
+
+audio/
+  ambiance-vagues.mp3          → son de fond en boucle
+  musique1.mp3, musique2.mp3... → playlist musicale aléatoire
+```
+
+**Règle d'or de l'ordre de chargement dans `index.html`** :
+
+```html
+<script src="js/audio.js"></script>
+<script src="js/etat-jeu.js"></script>
+<script src="js/donnees/classes.js"></script>
+<script src="js/donnees/arc1.js"></script>
+<!-- futurs arcs ici -->
+<script src="js/creation-personnage.js"></script>
+<script src="js/moteur-scenes.js"></script>
+```
+
+`etat-jeu.js` doit toujours être chargé **avant** les fichiers de `donnees/`, car ceux-ci remplissent les objets `SCENES` et `EVENEMENTS` qu'il déclare vides.
+
+---
+
+## 🧍 L'état du joueur (`joueur`)
+
+L'objet `joueur` est déclaré à **deux endroits identiques** — il faut toujours les garder synchronisés :
+
+1. `creation-personnage.js` → déclaration initiale (`let joueur = {...}`)
+2. `moteur-scenes.js` → dans `retourMenuPrincipal()` (réinitialisation)
+
+Structure actuelle :
+
+```js
+let joueur = {
+  nom: "",
+  sexe: null,
+  age: 16,
+  classe: null,          // "pirate" | "marine" | "revolutionnaire"
+  classeFruit: null,      // "gomu" | "mera" | ... (clé de CLASSES_FRUIT)
+  race: null,
+  origine: null,
+  poste: null,
+  entourage: null,
+  stats: {
+    vie: 100,
+    endurance: 100,
+    force: 5,
+    charisme: 5,
+    intelligence: 5,
+    vitesse: 5,
+    reputation: 5,
+    argent: 10,
+    prime: 0
+  },
+  competences: [],
+  objets: [],
+  relations: [],         // [{ nom: "Luffy", statut: "Allié" }, ...]
+  journalArc: [],         // titres des scènes/événements de l'arc en cours
+  historique: []          // [{ numeroArc, age, evenements: [...] }, ...]
+};
+```
+
+⚠️ Si tu ajoutes une nouvelle propriété à `joueur`, pense à l'ajouter **aux deux endroits** ci-dessus.
+
+---
+
+## ➕ Ajouter une nouvelle stat
+
+1. Ajoute-la dans `joueur.stats` (les deux endroits).
+2. Choisis un emoji et ajoute-le partout où les stats sont affichées :
+   - `mettreAJourFiche()` (fiche du haut, dans `moteur-scenes.js`)
+   - `afficherDetailsPersonnage()` (modale WANTED)
+   - `afficherRecap()` (écran récapitulatif de création, dans `creation-personnage.js`)
+3. Ajoute-la dans l'objet `labels` utilisé par les fonctions de conditions (`formaterEffetsPills`, `texteConditionHTML`, `raisonIndisponibilite`, `raisonInterdiction`) dans `moteur-scenes.js` — cherche `const labels = {` (plusieurs occurrences).
+4. Ajoute un bonus `0` (ou une valeur) pour cette stat dans **toutes** les entrées de `RACES`, `ORIGINES`, `POSTES`, `ENTOURAGES` (dans `creation-personnage.js`), pour éviter les incohérences.
+
+---
+
+## 📜 Ajouter une scène
+
+Les scènes vivent dans `js/donnees/arcX.js`, ajoutées à `SCENES` via `Object.assign`.
+
+```js
+Object.assign(SCENES, {
+  ma_nouvelle_scene: {
+    categorie: "Moment de vie",   // détermine la couleur du tag (voir plus bas)
+    titre: "Titre affiché en haut de la card",
+    texte: () => `Texte de narration. Peut utiliser \${joueur.nom}, \${joueur.age}, etc.`,
+    choix: [
+      {
+        texte: "Ce que le joueur voit sur le bouton",
+        resultat: "Texte affiché après avoir cliqué (optionnel, sinon reprend `texte`)",
+        effets: { force: 1, argent: -2 },
+        suivant: "id_de_la_scene_suivante"   // ou "EVENEMENT" ou "FIN"
+      }
+    ]
+  }
+});
+```
+
+### Catégories et couleurs de tag
+
+Chaque catégorie génère automatiquement une classe CSS `tag-nom-de-categorie` via `classeTagCategorie()`. Les couleurs actuellement définies dans `style.css` :
+
+| Catégorie | Classe CSS | Couleur |
+|---|---|---|
+| Moment de vie | `.tag-moment-de-vie` | violet |
+| Rencontre | `.tag-rencontre` | vert |
+| Danger | `.tag-danger` | rouge/brun |
+| Exploration | `.tag-exploration` | doré |
+| Combat | `.tag-combat` | rouge foncé |
+| Destin | (à définir si besoin) | — |
+| Création du personnage | `.tag-creation` | bleu |
+| *(aucune catégorie)* | `.tag-defaut` | brun neutre |
+
+Pour ajouter une nouvelle catégorie, ajoute simplement une classe `.tag-nom-en-minuscule-avec-tirets` dans `style.css` — la fonction `classeTagCategorie()` convertit automatiquement le texte de la catégorie en nom de classe (accents supprimés, espaces → tirets).
+
+---
+
+## ⚡ Ajouter un événement aléatoire
+
+Les événements sont indépendants des scènes — ils se déclenchent quand une scène a `suivant: "EVENEMENT"`. Ajoutés via `EVENEMENTS.push(...)` dans `arcX.js`.
+
+```js
+EVENEMENTS.push({
+  id: "identifiant_unique",
+  categorie: "Danger",
+  titre: "Titre de l'événement",
+  texte: () => `Texte de narration.`,
+  poidsBase: 3,                          // poids de tirage (plus c'est grand, plus il a de chances de sortir)
+  condition: (j) => (j.stats.reputation > 8 ? 2 : 1),  // multiplie le poids selon l'état du joueur
+  choix: [
+    { texte: "...", effets: {...}, suivant: "scene_suivante" }
+  ]
+});
+```
+
+Le tirage pondéré est géré par `lancerEvenementAleatoire()` dans `moteur-scenes.js` — pas besoin d'y toucher pour ajouter un événement, juste le déclarer via `EVENEMENTS.push(...)`.
+
+---
+
+## 🔒 Système de conditions sur les choix (`requis` / `interdit`)
+
+Chaque choix peut avoir des conditions qui déterminent s'il est cliquable, mis en valeur, ou bloqué. **4 états possibles** :
+
+| État | Condition | Apparence | Cliquable |
+|---|---|---|---|
+| **Normal** | Aucune condition | Standard | ✅ |
+| **Spécial** ⭐ | `requis` présent ET rempli | Bordure dorée | ✅ |
+| **Indisponible** 🔒 | `requis` présent MAIS non rempli | Grisé | ❌ |
+| **Interdit** 🚫 | `interdit` présent ET actif | Teinte rouge | ❌ |
+
+### Structure de `requis` (ce qu'il faut AVOIR)
+
+```js
+requis: {
+  stats: { force: 6, argent: 10 },              // une ou plusieurs stats minimales
+  competence: "Navigation basique",              // nom exact d'une compétence
+  classe: "pirate",                               // clé de CLASSES
+  race: "homme_poisson",                          // clé de RACES
+  relation: { nom: "Luffy", statut: "Allié" },    // relation avec un statut précis
+  ageMin: 20
+}
+```
+
+### Structure de `interdit` (ce qui BLOQUE le choix)
+
+```js
+interdit: {
+  stats: { force: 15 },              // bloqué SI la stat est ≥ ce seuil
+  competence: "...",                  // bloqué SI le joueur a cette compétence
+  classe: "marine",                   // bloqué SI le joueur est de cette classe
+  race: "geant",                      // bloqué SI le joueur est de cette race
+  relation: { nom: "...", statut: "Ennemi" },  // bloqué SI cette relation a ce statut
+  siClasseFruit: true                 // bloqué SI le joueur a mangé un fruit du démon
+}
+```
+
+### Exemple complet (nager, impossible avec un fruit du démon)
+
+```js
+{
+  texte: "Plonger pour récupérer le trésor englouti",
+  interdit: { siClasseFruit: true },
+  resultat: "Tu plonges sans hésiter et remontes avec le trésor.",
+  effets: { argent: 5 },
+  suivant: "EVENEMENT"
+}
+```
+
+### Choix à issue variable (succès / échec selon les stats)
+
+```js
+{
+  texte: "Les défier pour prouver ta valeur",
+  issue: (j) => j.stats.force >= 6,   // fonction qui retourne true/false
+  succes: {
+    resultat: "Ta force impressionne l'équipage.",
+    effets: { force: 1, reputation: 2 },
+    suivant: "EVENEMENT"
+  },
+  echec: {
+    resultat: "Le combat tourne court.",
+    effets: { force: 1, vie: -10 },
+    suivant: "EVENEMENT"
+  }
+}
+```
+
+Le joueur voit toujours le choix (pas grisé), mais ne sait pas à l'avance s'il va réussir — seul le résultat (`succes` ou `echec`) est déterminé au clic.
+
+---
+
+## 🏷️ Effets possibles dans un choix
+
+```js
+effets: {
+  // Stats numériques (n'importe laquelle de joueur.stats)
+  force: 1,
+  vie: -10,
+  argent: 500000,
+  prime: 1000000,
+
+  // Compétences (tableau de noms, pas de doublons automatiques)
+  competences: ["Navigation basique"],
+
+  // Objets (tableau de noms, pas de doublons automatiques)
+  objets: ["Cape de capitaine"],
+
+  // Relations (ajoute ou met à jour le statut d'un personnage)
+  relations: [{ nom: "Luffy", statut: "Allié" }]
+}
+```
+
+Un choix peut aussi définir, **en dehors** de `effets` :
+
+```js
+classe: "pirate",           // change joueur.classe
+classeFruit: "gomu",         // change joueur.classeFruit
+finArc: true                 // déclenche avancerAge() après ce choix
+```
+
+---
+
+## 🍎 Fruits du démon (classe secondaire)
+
+Définis dans `js/donnees/classes.js`, sous `CLASSES_FRUIT` :
+
+```js
+const CLASSES_FRUIT = {
+  gomu: { nom: "Utilisateur du Gomu Gomu no Mi", emoji: "🍑", couleur: "#c9770f" }
+};
+```
+
+Pour donner un fruit à un choix, combine `classeFruit` + une compétence représentant la capacité :
+
+```js
+{
+  texte: "Manger le fruit étrange trouvé sur l'épave",
+  resultat: "Un pouvoir immense monte en toi.",
+  classeFruit: "gomu",
+  effets: { force: 2, competences: ["Élasticité"] },
+  suivant: "EVENEMENT"
+}
+```
+
+Le badge apparaît automatiquement à côté du nom du joueur (fiche + WANTED), et `interdit: { siClasseFruit: true }` permet de bloquer les choix incompatibles (nager, etc.) pour n'importe quel fruit.
+
+---
+
+## 🤝 Statuts de relation et couleurs
+
+Gérés par `couleurStatutRelation()` dans `moteur-scenes.js`. Détection par mot-clé (insensible à la casse) :
+
+| Mot-clé détecté | Couleur |
+|---|---|
+| "nakama" | doré |
+| "allié" / "ami" | vert |
+| "rival" | orange/ambre |
+| "ennemi" | rouge |
+| *(autre)* | brun neutre |
+
+Pour ajouter un nouveau statut, ajoute une ligne `if (s.includes("motcle")) return "#couleur";` **avant** les vérifications génériques, dans `couleurStatutRelation()`.
+
+---
+
+## 🎂 Système d'âge et fin de partie
+
+- Le joueur commence à **16 ans**.
+- L'âge avance de +1 uniquement sur un choix marqué `finArc: true` (fin d'un arc), via `avancerAge()`.
+- À **40 ans**, `finRetraite()` se déclenche automatiquement, choisissant un texte de fin selon les stats.
+- À chaque `avancerAge()`, le `journalArc` en cours est archivé dans `historique`, puis vidé pour le prochain arc.
+
+### Fins prématurées
+
+`etatCritiqueAtteint()` vérifie si `vie <= 0` ou `argent <= -10` → déclenche `afficherFinPrematuree()` (mort ou ruine) via `terminerPartie()`.
+
+### Récap final
+
+`terminerPartie()` construit automatiquement un récapitulatif de tous les arcs traversés (`joueur.historique`), affiché dans l'écran de fin — pas besoin d'y toucher pour ajouter du contenu, il se remplit automatiquement au fil du jeu.
+
+---
+
+## 💾 Sauvegarde de partie
+
+Système basé sur `localStorage` (propre à l'appareil/navigateur, ne synchronise pas entre appareils).
+
+- `sauvegarderPartie()` : appelée automatiquement après chaque `appliquerEffets()`.
+- `chargerPartie()` : appelée par le bouton "📖 Continuer l'aventure" sur le menu principal (visible seulement si une sauvegarde existe).
+- `supprimerSauvegarde()` : appelée à la fin de partie (`terminerPartie()`), pour repartir propre après une victoire/mort.
+- "Retour au menu" (`retourMenuPrincipal()`) ne supprime PAS la sauvegarde — c'est une pause, pas un abandon.
+
+---
+
+## 🔊 Système audio
+
+- **Ambiance de vagues** : boucle continue, indépendante de la musique, démarrée/coupée via le bouton 🎵.
+- **Playlist musicale** (`PLAYLIST_MUSIQUES` dans `audio.js`) : une musique aléatoire différente de la précédente se lance à chaque fois que la précédente se termine.
+- Le panneau de contrôle (bouton 🎵/🔇, slider vertical, boutons +/-) est **fixe sur le bord droit de l'écran**, visible en permanence (hors de `.cabin-frame`).
+
+Pour ajouter une musique à la playlist : place le fichier dans `audio/`, puis ajoute son chemin dans le tableau `PLAYLIST_MUSIQUES` dans `js/audio.js`.
+
+---
+
+## 🎨 Badges affichés dans la fiche et le WANTED (ordre d'affichage)
+
+1. **Objets** 🎒 (en premier)
+2. **Compétences** 📘
+3. **Relations** 🤝 (colorées selon le statut)
+
+Le nom du joueur est accompagné, dans l'ordre, de : badge **race**, badge **classe**, badge **classe fruit**.
+
+---
+
+## ✅ Checklist rapide pour ajouter un nouvel arc
+
+1. Crée `js/donnees/arc2.js` sur le modèle de `arc1.js` (`Object.assign(SCENES, {...})` + `EVENEMENTS.push(...)`).
+2. Ajoute `<script src="js/donnees/arc2.js"></script>` dans `index.html`, **avant** `creation-personnage.js`.
+3. Fais pointer la dernière scène de l'arc précédent (`suivant: "..."`) vers la première scène du nouvel arc.
+4. Ajoute une scène de choix de fin d'arc si besoin (comme `arc1_choix_destin`), avec `finArc: true` sur les choix qui doivent faire vieillir le joueur.
+5. Pense aux nouvelles catégories de tags si tu en introduis (`categorie: "..."`) — ajoute la classe CSS correspondante si elle n'existe pas déjà.
+
+---
+
+*Dernière mise à jour de ce guide : à compléter à chaque nouvelle fonctionnalité majeure.*

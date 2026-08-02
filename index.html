@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>One Piece Adventure</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🏴‍☠️</text></svg>">
+  <!-- Polices thématiques via Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Pirata+One&family=Rye&family=UnifrakturMaguntia&family=Yuji+Syuku&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+
+    
+</head>
+<body>
+
+  <!-- CADRE EN BOIS DE LA CABINE (Englobe TOUT le jeu) -->
+  <div class="cabin-frame">
+    
+    <!-- EN-TÊTE DU NAVIRE -->
+    <header class="ship-header">
+      <div class="jolly-roger">🏴‍☠️</div>
+      <h1 class="game-title">ONE PIECE ADVENTURE</h1>
+      <p class="tagline">Écris ta propre légende.</p>
+    </header>
+
+    <!-- NAVIGATION EN PLAQUES DE BOIS -->
+    <nav class="wood-nav">
+      <button class="wood-plaque">🏆 Panthéon</button>
+      <button class="wood-plaque">👑 Succès</button>
+      <button class="wood-plaque">📜 Quêtes</button>
+      <button class="wood-plaque">🛒 Boutique</button>
+      <!--<button class="wood-plaque">⚙ Paramètres</button>-->
+    </nav>
+
+    <main class="main-content">
+      
+      <!-- MENU PRINCIPAL (Masqué au lancement du jeu) -->
+      <section id="menuPrincipal" class="menu-section">
+        <div class="parchment-scroll main-scroll">
+          <div class="scroll-content">
+            <h3>Nouveau Départ</h3>
+            <p>Une nouvelle ère de la piraterie s'ouvre devant toi.</p>
+            <button id="startGame" class="parchment-btn">Commencer l'aventure</button>
+            <button id="continuerGame" class="parchment-btn" style="display:none; margin-top:10px;" onclick="chargerPartie()">
+                📖 Continuer l'aventure
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ZONE DU JEU (RANGÉE DANS LA CABINE EN BOIS) -->
+       
+        <section id="jeu" style="display:none;">
+        <div id="ficheWrapper" class="fiche-permanente-wrapper">
+            <div class="fiche-permanente-inner">
+                <button id="btnRetourMenu" class="parchment-btn" onclick=" retourMenuPrincipal()">
+                    🏠 Retour au menu
+                </button>
+                <div id="ficheJoueur" class="fiche-permanente"></div>
+            </div>
+        </div>
+
+        <h2 id="titreScene" class="game-title" style="font-size: 1.8rem; margin: 15px 0;"></h2>
+        <div id="contenuJeu"></div>
+        </section>
+
+    </main>
+  </div> <!-- Fin de .cabin-frame -->
+
+    <div id="panneauAudio" class="panneau-audio">
+        <audio id="ambianceVagues" loop preload="auto">
+            <source src="audio/ambiance-vagues.mp3" type="audio/mpeg">
+        </audio>
+        <audio id="lecteurMusique" preload="auto"></audio>
+
+        <button id="btnMusique" class="wood-plaque" onclick="toggleMusique()" style="padding:8px 12px; font-size:1.1rem;">🎵</button>
+
+        <button class="volume-btn" onclick="ajusterVolumeBouton(10)">+</button>
+        <input type="range" id="volumeSlider" min="0" max="100" value="40" oninput="ajusterVolume(this.value)">
+        <button class="volume-btn" onclick="ajusterVolumeBouton(-10)">−</button>
+    </div>
+
+  <!-- MODALE DE DÉTAILS (Peut rester hors de la cabine car c'est un overlay plein écran) -->
+  <div id="modalDetails" class="modal-overlay" onclick="fermerModal(event)">
+    <div class="modal-content wanted-poster">
+      <!-- <span class="close-btn" onclick="fermerModalDirect()">&times;</span> -->
+      <div id="modalBody">
+        <!-- Le JS injectera les détails du personnage ici -->
+      </div>
+    </div>
+  </div>
+
+<script src="js/audio.js"></script>
+<script src="js/etat-jeu.js"></script>
+<script src="js/donnees/classes.js"></script>
+<script src="js/donnees/arc1.js"></script>
+<script src="js/creation-personnage.js"></script>
+<script src="js/moteur-scenes.js"></script>
+
+</body>
+</html>

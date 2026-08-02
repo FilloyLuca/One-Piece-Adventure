@@ -1,0 +1,366 @@
+// ---------- 1. DONNÉES DE CRÉATION ----------
+const RACES = {
+  humain: {
+    nom: "Humain",
+    emoji: "🧑",
+    desc: "La race la plus commune, mais aussi la plus adaptable.",
+    bonus: { vie: 0, endurance: 0, force: 0, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0 }
+  },
+  buccaneers: {
+    nom: "Buccaneer",
+    emoji: "🩸",
+    desc: "Une race spéciale d'humanoïdes presque éteinte, ils portent en eux un peu de sang géant.",
+    bonus: { vie: 10, endurance: 5, force: 3, reputation: 0, charisme: -2, intelligence: 0, vitesse: 0, argent: 0 }
+  },
+  cyborg: {
+    nom: "Cyborg",
+    emoji: "🤖",
+    desc: "Une autre forme de vie humaine, modifiée avec des machines et des métaux.",
+    bonus: { vie: 0, endurance: 3, force: 2, reputation: 0, charisme: -1, intelligence: 0, vitesse: 0, argent: 0 }
+  },
+  geant: {
+    nom: "Géant",
+    emoji: "🪨",
+    desc: "Une race d'êtres largement plus grands que les autres races connues.",
+    bonus: { vie: 10, endurance: 10, force: 4, reputation: 0, charisme: -3, intelligence: 0, vitesse: -10, argent: 0 }
+  },
+  homme_poisson: {
+    nom: "Homme-poisson",
+    emoji: "🐟",
+    desc: "Biologiquement la fusion d'un homme et d'une espèce de poisson.",
+    bonus: { vie: 0, endurance: 2, force: 2, reputation: 0, charisme: 1, intelligence: 0, vitesse: 10, argent: 0 }
+  }
+};
+
+const ORIGINES = {
+  eastblue: {
+    nom: "Natif d'East Blue",
+    emoji: "🌊",
+    desc: "Une mer calme, loin des grands dangers. Peu de gloire, mais on y survit facilement.",
+    bonus: { force: 0, reputation: 0, charisme: 0, argent: 3, moral: 1 }
+  },
+  westblue: {
+    nom: "Natif de West Blue",
+    emoji: "🌊",
+    desc: "Une mer réputée pour sa criminalité et la puissance de ses mafias.",
+    bonus: { force: 3, reputation: 1, charisme: 0, argent: -2, moral: -3 }
+  },
+  northblue: {
+    nom: "Natif de North Blue",
+    emoji: "🌊",
+    desc: "Une mer très influencée par le Royaume de Germa.",
+    bonus: { force: 3, reputation: 0, charisme: -1, argent: -1, moral: 1 }
+  },
+  southblue: {
+    nom: "Natif de South Blue",
+    emoji: "🌊",
+    desc: "Une mer connue pour sa faune marine unique et grande.",
+    bonus: { force: 0, reputation: 0, charisme: 0, argent: 4, moral: 2 }
+  }
+};
+
+const POSTES = {
+  combattant: {
+    nom: "Combattant",
+    emoji: "👊",
+    desc: "Ta force brute parle pour toi.",
+    bonus: { force: 4, reputation: 1, charisme: 0, moral: 0 }
+  },
+  epeiste: {
+    nom: "Épéiste",
+    emoji: "⚔️",
+    desc: "Discipline et lame aiguisée.",
+    bonus: { force: 3, reputation: 2, charisme: 0, moral: 0 }
+  },
+  tireur: {
+    nom: "Tireur d'élite",
+    emoji: "🎯",
+    desc: "Précision avant tout, jamais au contact.",
+    bonus: { force: 1, reputation: 1, charisme: 1, moral: 1 }
+  },
+  navigateur: {
+    nom: "Navigateur",
+    emoji: "🧭",
+    desc: "Tu lis la mer et le ciel mieux que personne.",
+    bonus: { force: 0, reputation: 0, charisme: 2, moral: 2 }
+  },
+  medecin: {
+    nom: "Médecin de bord",
+    emoji: "💊",
+    desc: "Indispensable à tout équipage qui compte survivre.",
+    bonus: { force: 0, reputation: 2, charisme: 1, moral: 1 }
+  },
+  cuisinier: {
+    nom: "Cuisinier",
+    emoji: "🍳",
+    desc: "Le moral d'un équipage passe par son estomac.",
+    bonus: { force: 1, reputation: 0, charisme: 3, moral: 1 }
+  },
+  musicien: {
+    nom: "Musicien",
+    emoji: "🎵",
+    desc: "Tu portes les légendes en chansons, et parfois tu en écris une nouvelle.",
+    bonus: { force: 0, reputation: 1, charisme: 4, moral: 1 }
+  }
+};
+
+const ENTOURAGES = {
+  mentor: {
+    nom: "Mentor pirate retraité",
+    emoji: "🧓",
+    desc: "Un vieux loup de mer t'a tout appris avant de raccrocher.",
+    bonus: { force: 2, reputation: 1, charisme: 0, argent: 0, moral: 1 }
+  },
+  famille_marine: {
+    nom: "Orphelin",
+    emoji: "🕊️",
+    desc: "On t'a recueilli dans la rue.",
+    bonus: { force: 0, reputation: -2, charisme: 1, argent: 2, moral: -1 }
+  },
+  orphelin: {
+    nom: "Paysan",
+    emoji: "🥕",
+    desc: "Tu as grandi dans les champs, loin de la vie maritime.",
+    bonus: { force: 3, reputation: 0, charisme: 0, argent: -3, moral: 0 }
+  },
+  noble_dechu: {
+    nom: "Noble déchu",
+    emoji: "👑",
+    desc: "Ta famille a tout perdu. Il ne te reste que ton nom... et ta rage.",
+    bonus: { force: 0, reputation: 3, charisme: 2, argent: -2, moral: -1 }
+  }
+};
+
+// ---------- 1bis. BANQUE DE NOMS ALÉATOIRES ----------
+
+const PRENOMS_MASCULINS = [
+  "Rekko", "Basil", "Dorian", "Fenrick", "Garnet", "Hektor", "Ismar",
+  "Joran", "Kelvin", "Lorcan", "Magnus", "Nero", "Osgar", "Pello",
+  "Quentin", "Rasko", "Silvan", "Tarek", "Uldric", "Varek"
+];
+
+const PRENOMS_FEMININS = [
+  "Aria", "Belka", "Cyra", "Delma", "Elira", "Fennia", "Garance",
+  "Halia", "Ilse", "Jessamine", "Kessa", "Lorelin", "Marisol", "Noreen",
+  "Odalys", "Perrine", "Quila", "Rosalind", "Selke", "Vianne"
+];
+
+const NOMS_FAMILLE = [
+  "Corvain", "Duskbane", "Feralta", "Grimshaw", "Halveston", "Ironwake",
+  "Kestrion", "Lowtide", "Marrow", "Nightsail", "Osprey", "Ravenscar",
+  "Saltborn", "Tidewell", "Vasker", "Wraithmoor", "Zephrion"
+];
+
+function genererNomAleatoire(sexe) {
+  const prenoms = sexe === "femme" ? PRENOMS_FEMININS : PRENOMS_MASCULINS;
+  const prenom = prenoms[Math.floor(Math.random() * prenoms.length)];
+  const famille = NOMS_FAMILLE[Math.floor(Math.random() * NOMS_FAMILLE.length)];
+  return `${prenom} ${famille}`;
+}
+
+// ---------- 2. ÉTAT DU JOUEUR ----------
+
+let joueur = {
+  nom: "",
+  sexe: null,
+  age:16,
+  classe: null,
+  classeFruit: null,
+  race: null,
+  origine: null,
+  poste: null,
+  entourage: null,
+  stats: { vie: 100, endurance: 100, force: 5, charisme: 5, intelligence: 5, vitesse: 5, reputation: 5, argent: 10, prime:0 },
+  objets: [],
+  competences: [],   
+  relations: [],  
+  journalArc: [],   // événements/scènes du chapitre en cours
+  historique: [],    // résumé de chaque arc terminé
+};
+
+let etapeActuelle = 0;
+const ETAPES = ["sexe", "nom", "race", "origine", "poste", "entourage", "recap"];
+
+// ---------- 3. MOTEUR D'AFFICHAGE ----------
+
+function demarrerCreationPersonnage() {
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const jeu = document.getElementById("jeu");
+  const ficheWrapper = document.getElementById("ficheWrapper");
+  const shipHeader = document.querySelector(".ship-header");
+  const woodNav = document.querySelector(".wood-nav");
+
+  if (menuPrincipal) menuPrincipal.style.display = "none";
+  if (jeu) jeu.style.display = "block";
+  if (ficheWrapper) ficheWrapper.style.display = "none";
+  if (shipHeader) shipHeader.style.display = "none";
+  if (woodNav) woodNav.style.display = "none";
+
+  etapeActuelle = 0;
+  afficherEtape();
+}
+
+function afficherEtape() {
+  const etape = ETAPES[etapeActuelle];
+  const titre = document.getElementById("titreScene");
+  const contenu = document.getElementById("contenuJeu");
+  if (!contenu) return;
+
+  contenu.innerHTML = "";
+
+  if (etape === "sexe") {
+    if (titre) titre.textContent = "Homme ou femme ?";
+    contenu.innerHTML = `
+      <div class="scene-card">
+        <span class="scene-tag tag-creation">Création du personnage</span>
+        <h2 class="scene-titre">Quel est ton sexe ?</h2>
+        <p class="scene-texte">Avant de prendre la mer, le monde doit savoir qui tu es.</p>
+        <div class="scene-choix">
+          <button class="parchment-strip" onclick="choisirSexe('homme')">♂ Un homme</button>
+          <button class="parchment-strip" onclick="choisirSexe('femme')">♀ Une femme</button>
+        </div>
+      </div>`;
+  }
+
+ if (etape === "nom") {
+    if (titre) titre.textContent = "Qui es-tu ?";
+    contenu.innerHTML = `
+      <div class="parchment-scroll main-scroll" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%;">
+        
+        <h2 style="font-family:'Pirata One', cursive; font-size: 2rem; color: #4a150e; margin-bottom: 10px;">
+          Ton Nom
+        </h2>
+        
+        <div class="scroll-content" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
+          <p>Avant de prendre la mer, le monde doit connaître ton nom.</p>
+          
+          <input type="text" id="inputNom" placeholder="Nom de ton personnage"
+            style="margin-top:15px; padding:8px; font-family:'Cinzel',serif; width:80%; text-align:center;">
+          
+          <button class="parchment-btn" type="button" onclick="tirerNomAleatoire()" style="margin-top:12px;">
+            🎲 Nom aléatoire
+          </button>
+          
+          <button class="parchment-btn" onclick="validerNom()" style="margin-top:10px;">
+            Continuer
+          </button>
+        </div>
+      </div>`;
+  }
+
+  if (etape === "race") afficherChoixEtape("Qu'es-tu ?", RACES, "race");
+  if (etape === "origine") afficherChoixEtape("D'où viens-tu ?", ORIGINES, "origine");
+  if (etape === "poste") afficherChoixEtape("Quel est ton rôle sur un navire ?", POSTES, "poste");
+  if (etape === "entourage") afficherChoixEtape("Qui t'a façonné ?", ENTOURAGES, "entourage");
+  if (etape === "recap") afficherRecap();
+}
+
+function afficherChoixEtape(question, dictionnaire, cle) {
+  const titre = document.getElementById("titreScene");
+  if (titre) titre.textContent = question;
+
+  const contenu = document.getElementById("contenuJeu");
+  let html = `<div class="choices-container">`;
+  for (const id in dictionnaire) {
+    const item = dictionnaire[id];
+    html += `
+      <div class="parchment-strip" onclick="choisir('${cle}', '${id}')">
+        <strong>${item.emoji} ${item.nom}</strong><br>
+        <small>${item.desc}</small>
+      </div>`;
+  }
+  html += `</div>`;
+  contenu.innerHTML = html;
+}
+
+function choisirSexe(sexe) {
+  joueur.sexe = sexe;
+  etapeActuelle++;
+  afficherEtape();
+}
+
+function tirerNomAleatoire() {
+  const input = document.getElementById("inputNom");
+  if (input) input.value = genererNomAleatoire(joueur.sexe);
+}
+
+function validerNom() {
+  const input = document.getElementById("inputNom");
+  const val = input ? input.value.trim() : "";
+  joueur.nom = val || genererNomAleatoire(joueur.sexe);
+  etapeActuelle++;
+  afficherEtape();
+}
+
+function choisir(categorie, id) {
+  const dictionnaires = { race: RACES, origine: ORIGINES, poste: POSTES, entourage: ENTOURAGES };
+  const item = dictionnaires[categorie][id];
+
+  joueur[categorie] = id;
+  for (const stat in item.bonus) {
+    joueur.stats[stat] += item.bonus[stat];
+  }
+
+  etapeActuelle++;
+  afficherEtape();
+}
+
+function afficherRecap() {
+  const r = RACES[joueur.race];
+  const o = ORIGINES[joueur.origine];
+  const p = POSTES[joueur.poste];
+  const e = ENTOURAGES[joueur.entourage];
+
+  document.getElementById("contenuJeu").innerHTML = `
+    <div class="wanted-poster">
+      <div class="logbook-title">📜 Fiche du personnage</div>
+      <div class="log-entry"><span class="log-day">Nom</span> ${joueur.nom}</div>
+      <div class="log-entry"><span class="log-day">Race</span> ${r.emoji} ${r.nom}</div>
+      <div class="log-entry"><span class="log-day">Origine</span> ${o.emoji} ${o.nom}</div>
+      <div class="log-entry"><span class="log-day">Rôle</span> ${p.emoji} ${p.nom}</div>
+      <div class="log-entry"><span class="log-day">Entourage</span> ${e.emoji} ${e.nom}</div>
+      <div class="log-entry"><span class="log-day">Statistiques de départ</span><br>
+        ❤️ Vie: ${joueur.stats.vie} &nbsp;|&nbsp;
+        🔋 Endurance: ${joueur.stats.endurance} &nbsp;|&nbsp;<br>
+        💪 Force: ${joueur.stats.force} &nbsp;|&nbsp;
+        ✨ Charisme: ${joueur.stats.charisme} &nbsp;|&nbsp;
+        🧠 Intelligence: ${joueur.stats.intelligence} &nbsp;|&nbsp;<br>
+        ⚡ Vitesse: ${joueur.stats.vitesse} &nbsp;|&nbsp;
+        🏆 Réputation: ${joueur.stats.reputation} &nbsp;|&nbsp;
+        💰 Argent: ${formaterBerrys(joueur.stats.argent)}
+      </div>
+    </div>
+    <button class="parchment-btn" style="margin-top:20px; width:100%;" onclick="lancerAventure()">
+      ⛵ Prendre la mer
+    </button>`;
+}
+
+function lancerAventure() {
+  // S'assurer que le conteneur principal du jeu est bien affiché
+  const jeuContainer = document.getElementById("jeu");
+  if (jeuContainer) jeuContainer.style.display = "block";
+
+  // Lancer la toute première scène définie dans moteur.js
+  if (typeof demarrerScene === "function") {
+    demarrerScene("arc1_reveil");
+  } else {
+    console.error("La fonction demarrerScene() n'est pas accessible. Vérifiez que moteur.js est chargé.");
+  }
+}
+
+// ---------- 4. BRANCHEMENT SUR LE BOUTON EXISTANT ----------
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("startGame");
+  if (btn) btn.addEventListener("click", demarrerCreationPersonnage);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("startGame");
+  if (btn) btn.addEventListener("click", demarrerCreationPersonnage);
+
+  const btnContinuer = document.getElementById("continuerGame");
+  if (btnContinuer && localStorage.getItem("op_sauvegarde")) {
+    btnContinuer.style.display = "inline-block";
+  }
+});

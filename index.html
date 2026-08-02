@@ -10,7 +10,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Pirata+One&family=Rye&family=UnifrakturMaguntia&family=Yuji+Syuku&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     
 </head>
 <body>
@@ -27,7 +27,7 @@
 
     <!-- NAVIGATION EN PLAQUES DE BOIS -->
     <nav class="wood-nav">
-      <button class="wood-plaque">🏆 Panthéon</button>
+      <button class="wood-plaque" onclick="afficherPantheon()">🏆 Panthéon</button>
       <button class="wood-plaque">👑 Succès</button>
       <button class="wood-plaque">📜 Quêtes</button>
       <button class="wood-plaque">🛒 Boutique</button>
@@ -47,6 +47,14 @@
                 📖 Continuer l'aventure
             </button>
           </div>
+        </div>
+      </section>
+
+      <section id="pantheon" class="menu-section" style="display:none;">
+        <div class="logbook" style="max-width:700px; margin:0 auto; width:100%;">
+          <div class="logbook-title">🏆 Panthéon des Pirates</div>
+          <button class="parchment-btn" style="margin-top:20px; margin-bottom:25px; width:100%;" onclick="fermerPantheon()">Retour au menu</button>
+          <div id="pantheonContenu"></div>
         </div>
       </section>
 
@@ -75,7 +83,7 @@
         </audio>
         <audio id="lecteurMusique" preload="auto"></audio>
 
-        <button id="btnMusique" class="wood-plaque" onclick="toggleMusique()" style="padding:8px 12px; font-size:1.1rem;">🎵</button>
+        <button id="btnMusique" class="wood-plaque" onclick="toggleMusique()" style="padding:8px 12px; font-size:1.1rem;">🔇</button>
 
         <button class="volume-btn" onclick="ajusterVolumeBouton(10)">+</button>
         <input type="range" id="volumeSlider" min="0" max="100" value="40" oninput="ajusterVolume(this.value)">

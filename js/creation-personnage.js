@@ -364,3 +364,18 @@ document.addEventListener("DOMContentLoaded", () => {
     btnContinuer.style.display = "inline-block";
   }
 });
+
+document.addEventListener("DOMContentLoaded", () => {
+  const btn = document.getElementById("startGame");
+  if (btn) btn.addEventListener("click", demarrerCreationPersonnage);
+
+  const btnContinuer = document.getElementById("continuerGame");
+  if (btnContinuer && localStorage.getItem("op_sauvegarde")) {
+    btnContinuer.style.display = "inline-block";
+  }
+
+  const piecesAffichage = document.getElementById("piecesAffichage");
+  if (piecesAffichage) {
+    piecesAffichage.textContent = `🪙 ${chargerPiecesBoutique()} pièces`;
+  }
+});

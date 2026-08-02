@@ -606,45 +606,91 @@ function afficherFinPrematuree() {
 
 function finRetraite() {
   const s = joueur.stats;
-  const primeBrute = joueur.stats.prime;
+  const primeBrute = s.prime;
 
-  let titre, raison;
+  const finsParClasse = {
+    pirate: {
+      legende: { titre: "Légende retirée des mers", raison: "À 40 ans, ton nom résonne encore dans tous les ports. Tu raccroches en légende vivante." },
+      solitaire: { titre: "Pirate solitaire", raison: "Craint et respecté, mais seul. Ta légende s'achève dans le silence d'une île isolée." },
+      aime: { titre: "Capitaine bien-aimé", raison: "Entouré de ton équipage jusqu'au bout, tu prends une retraite paisible, célébré par tous." },
+      redoute: { titre: "Pirate redouté, retraité", raison: "Ta prime impressionnante te suit jusqu'à la fin. Tu choisis de disparaître discrètement." },
+      normal: { titre: "Vieux loup de mer", raison: "Sans grande gloire, mais sans regret. Tu as vécu ta vie de pirate à ta façon." }
+    },
+    marine: {
+      legende: { titre: "Amiral à la retraite", raison: "Ton nom est gravé dans l'histoire de la Marine. Tu quittes le service en héros de la justice." },
+      solitaire: { titre: "Marine austère", raison: "Rigoureux jusqu'au bout, tu pars sans éclat, mais avec le devoir accompli." },
+      aime: { titre: "Officier respecté", raison: "Tes hommes te vénèrent. Tu pars en laissant un héritage de loyauté." },
+      redoute: { titre: "Marine redouté, retraité", raison: "Ta poigne de fer a fait trembler les pirates. Tu raccroches l'uniforme en silence." },
+      normal: { titre: "Vétéran de la Marine", raison: "Sans éclat particulier, mais fidèle au drapeau jusqu'au bout." }
+    },
+    revolutionnaire: {
+      legende: { titre: "Icône de la révolution", raison: "Ton combat a changé le monde. À 40 ans, tu deviens une légende pour les opprimés." },
+      solitaire: { titre: "Révolutionnaire de l'ombre", raison: "Ton visage reste inconnu, mais ton influence a marqué les esprits en secret." },
+      aime: { titre: "Voix du peuple", raison: "Adoré par ceux que tu as libérés, tu prends une retraite entourée de gratitude." },
+      redoute: { titre: "Ennemi juré du gouvernement", raison: "Ta tête est mise à prix, mais ta cause survit. Tu disparais dans la clandestinité." },
+      normal: { titre: "Ancien insurgé", raison: "Ton combat n'a pas tout changé, mais tu as fait ta part, à ta façon." }
+    }
+  };
 
+  const fins = finsParClasse[joueur.classe] || finsParClasse.pirate;
+
+  let choix;
   if (primeBrute >= 300_000_000) {
-    titre = "Légende retirée des mers";
-    raison = "À 40 ans, ton nom résonne encore dans tous les ports. Tu raccroches en légende vivante.";
-  } else if (s.reputation >= 15 && s.moral < 5) {
-    titre = "Pirate solitaire";
-    raison = "Craint et respecté, mais seul. Ta légende s'achève dans le silence d'une île isolée.";
+    choix = fins.legende;
+  } else if (s.reputation >= 15 && s.charisme < 8) {
+    choix = fins.solitaire;
   } else if (s.charisme >= 15) {
-    titre = "Capitaine bien-aimé";
-    raison = "Entouré de ton équipage jusqu'au bout, tu prends une retraite paisible, célébré par tous.";
+    choix = fins.aime;
   } else if (primeBrute >= 100_000_000) {
-    titre = "Pirate redouté, retraité";
-    raison = "Ta prime impressionnante te suit jusqu'à la fin. Tu choisis de disparaître discrètement.";
+    choix = fins.redoute;
   } else {
-    titre = "Vieux loup de mer";
-    raison = "Sans grande gloire, mais sans regret. Tu as vécu ta vie de pirate à ta façon.";
+    choix = fins.normal;
   }
 
-  terminerPartie(titre, raison, primeBrute);
+  terminerPartie(choix.titre, choix.raison, primeBrute);
 }
 
 function finDePartie() {
   const primeBrute = joueur.stats.prime;
 
+  const titresParClasse = {
+    pirate: {
+      bas: "Pirate débutant",
+      moyen: "Menace montante",
+      haut: "Pirate redouté",
+      legende: "Légende de Grand Line"
+    },
+    marine: {
+      bas: "Simple soldat",
+      moyen: "Officier prometteur",
+      haut: "Marine respecté",
+      legende: "Amiral légendaire"
+    },
+    revolutionnaire: {
+      bas: "Révolutionnaire novice",
+      moyen: "Agent de l'ombre",
+      haut: "Figure de la révolution",
+      legende: "Légende de l'Armée Révolutionnaire"
+    }
+  };
+
+  const titres = titresParClasse[joueur.classe] || titresParClasse.pirate;
+
   let titre;
-  if (primeBrute >= 300_000_000) titre = "Légende de Grand Line";
-  else if (primeBrute >= 100_000_000) titre = "Pirate redouté";
-  else if (primeBrute >= 30_000_000) titre = "Menace montante";
-  else titre = "Pirate débutant";
+  if (primeBrute >= 300_000_000) titre = titres.legende;
+  else if (primeBrute >= 100_000_000) titre = titres.haut;
+  else if (primeBrute >= 30_000_000) titre = titres.moyen;
+  else titre = titres.bas;
 
   terminerPartie(titre, "Ton aventure touche à sa fin, pour l'instant...", primeBrute);
 }
 
 function terminerPartie(titre, raison, prime) {
-    supprimerSauvegarde();
+  supprimerSauvegarde();
   sauvegarderDansPantheon(titre, prime);
+
+  const piecesGagnees = calculerPiecesGagnees(prime);
+  const totalPieces = ajouterPiecesBoutique(piecesGagnees);
 
   const recapArcsHTML = joueur.historique.map(arc => `
     <div class="log-entry" style="text-align:left;">
@@ -657,20 +703,62 @@ function terminerPartie(titre, raison, prime) {
 
   document.getElementById("titreScene").textContent = "Fin de l'aventure";
   document.getElementById("contenuJeu").innerHTML = `
-    <div class="wanted-poster">
+    <div class="wanted-poster" id="carteResultat">
       <div class="logbook-title">🏴‍☠️ ${joueur.nom}</div>
       <div class="log-entry"><span class="log-day">Titre</span> ${titre}</div>
       <div class="log-entry"><span class="log-day">Prime finale</span> ${formaterBerrys(prime)}</div>
       <div class="log-entry"><span class="log-day">Âge final</span> ${joueur.age} ans</div>
       <p style="margin-top:15px; font-style:italic;">${raison}</p>
 
+      <div class="log-entry" style="margin-top:15px; background:rgba(212,175,55,0.1);">
+        <span class="log-day">🪙 Pièces gagnées</span> +${piecesGagnees} (total : ${totalPieces})
+      </div>
+
       <div style="margin-top:20px; text-align:left;">
         <h3 style="font-family:'Pirata One', cursive; margin-bottom:10px; color:#4a150e;">📜 Ton parcours</h3>
         ${recapArcsHTML || "<p>Aucun arc terminé.</p>"}
       </div>
+    </div>
 
-      <button class="parchment-btn" style="margin-top:20px;" onclick="window.location.reload()">Retour au Menu</button>
-    </div>`;
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="parchment-btn" style="flex:1;" onclick="window.location.reload()">Retour au Menu</button>
+      <button class="parchment-btn" style="flex:1;" onclick="telechargerCarte()">📥 Télécharger</button>
+    </div>
+  `;
+}
+
+function telechargerCarte() {
+  const carte = document.getElementById("carteResultat");
+  if (!carte) return;
+
+  const btnTelecharger = event.target;
+  btnTelecharger.disabled = true;
+  btnTelecharger.textContent = "⏳ Génération...";
+
+  // Neutralise temporairement la rotation/effet penché pour l'export
+  const transformOriginal = carte.style.transform;
+  carte.style.transform = "none";
+
+  html2canvas(carte, {
+    backgroundColor: "#e6d3a7",
+    scale: 2
+  }).then(canvas => {
+    // Remet le style original après la capture
+    carte.style.transform = transformOriginal;
+
+    const lien = document.createElement("a");
+    lien.download = `${joueur.nom.replace(/\s+/g, "_")}_wanted.png`;
+    lien.href = canvas.toDataURL("image/png");
+    lien.click();
+
+    btnTelecharger.disabled = false;
+    btnTelecharger.textContent = "📥 Télécharger";
+  }).catch(err => {
+    console.error("Erreur génération image :", err);
+    carte.style.transform = transformOriginal; // remet aussi en cas d'erreur
+    btnTelecharger.disabled = false;
+    btnTelecharger.textContent = "📥 Télécharger";
+  });
 }
 
 function formaterEffetsPills(effets) {
@@ -718,6 +806,37 @@ function formaterBerrys(montant) {
   return montant.toLocaleString("fr-FR") + " ฿";
 }
 
+function afficherPantheon() {
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const pantheon = document.getElementById("pantheon");
+  const contenu = document.getElementById("pantheonContenu");
+  if (!contenu) return;
+
+  const historique = JSON.parse(localStorage.getItem("op_pantheon") || "[]");
+
+  if (historique.length === 0) {
+    contenu.innerHTML = `<p style="text-align:center; padding:20px;">Aucun pirate n'a encore écrit sa légende. Sois le premier !</p>`;
+  } else {
+    contenu.innerHTML = historique.map((entree, index) => `
+      <div class="log-entry">
+        <span class="log-day">${entree.nom}</span><br>
+        <span style="font-style:italic;">${entree.titre}</span> · ${formaterBerrys(entree.prime)} · ${entree.date}
+      </div>
+    `).join("");
+  }
+
+  if (menuPrincipal) menuPrincipal.style.display = "none";
+  if (pantheon) pantheon.style.display = "block";
+}
+
+function fermerPantheon() {
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const pantheon = document.getElementById("pantheon");
+
+  if (pantheon) pantheon.style.display = "none";
+  if (menuPrincipal) menuPrincipal.style.display = "flex";
+}
+
 function sauvegarderDansPantheon(titre, prime) {
   const historique = JSON.parse(localStorage.getItem("op_pantheon") || "[]");
   historique.push({
@@ -763,6 +882,20 @@ function chargerPartie() {
 
 function supprimerSauvegarde() {
   localStorage.removeItem("op_sauvegarde");
+}
+
+function chargerPiecesBoutique() {
+  return parseInt(localStorage.getItem("op_pieces_boutique") || "0", 10);
+}
+
+function ajouterPiecesBoutique(montant) {
+  const total = chargerPiecesBoutique() + montant;
+  localStorage.setItem("op_pieces_boutique", total.toString());
+  return total;
+}
+
+function calculerPiecesGagnees(prime) {
+  return Math.floor(prime / 100_000);
 }
 
 // Fonction de lancement appelée quand on clique sur "Prendre la mer"

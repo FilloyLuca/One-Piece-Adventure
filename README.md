@@ -13,11 +13,15 @@ Aucune installation requise : le jeu tourne entièrement dans le navigateur, en 
 - **Scènes et événements aléatoires** organisés par arcs narratifs, avec des choix aux conséquences visibles.
 - **Système de conditions** : certains choix sont verrouillés, interdits, ou spéciaux selon les stats, compétences, classe, race ou relations du joueur.
 - **Classes** : Pirate, Marine, Révolutionnaire — et une classe secondaire pour les utilisateurs de fruits du démon.
+- **Titre / surnom (épithète)** : un surnom narratif (ex. *« Le Cinquième Empereur »*) peut être accordé au fil de l'histoire, affiché sous le nom du personnage.
+- **Prime** : évolue comme une statistique à part entière au fil des choix, distincte de l'argent courant du joueur.
 - **Relations** avec d'autres personnages, avec des statuts colorés (Allié, Nakama, Rival, Ennemi...).
 - **Objets et compétences** acquis au fil de l'aventure.
 - **Vieillissement** : le personnage avance en âge à chaque fin d'arc, jusqu'à une fin automatique à 40 ans.
 - **Fiche de personnage permanente** + affiche "WANTED" détaillée, consultables à tout moment.
+- **Récapitulatif de fin de partie** : parcours détaillé arc par arc, avec possibilité de télécharger sa fiche WANTED en image.
 - **Panthéon** des personnages précédents, sauvegardé localement.
+- **Pièces boutique** : gagnées à chaque fin de partie selon la prime finale, cumulées dans une réserve permanente (en vue d'une future boutique).
 - **Sauvegarde automatique** de la partie en cours (reprise possible via "Continuer l'aventure").
 - **Ambiance sonore** : bruit de vagues en boucle + playlist musicale aléatoire, avec contrôle de volume.
 
@@ -71,14 +75,15 @@ Ce guide est le point de référence pour comprendre et étendre le jeu — à c
 
 - HTML / CSS / JavaScript vanilla — aucune dépendance externe, aucun build nécessaire.
 - Polices via Google Fonts (Cinzel, Pirata One, Rye).
+- [html2canvas](https://html2canvas.hertzen.com/) (via CDN) pour générer une image téléchargeable de la fiche WANTED en fin de partie.
 - Sauvegarde via `localStorage` du navigateur (locale à l'appareil, pas de compte ni de serveur).
 
 ---
 
 ## 📌 Roadmap / idées futures
 
-- Boutique utilisant l'argent accumulé en jeu (distinct de la prime).
-- Arcs suivants (2, 3, ...).
+- Boutique dépensant les pièces accumulées en fin de partie (système de gain déjà en place).
+- Arcs suivants (2, 3, ...), avec personnalisation par classe (voir le guide, section "Personnaliser l'histoire selon la classe").
 - Système multi-appareils pour la sauvegarde (nécessiterait un backend).
 
 ---

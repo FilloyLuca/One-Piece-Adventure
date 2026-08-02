@@ -166,6 +166,7 @@ let joueur = {
   age:16,
   classe: null,
   classeFruit: null,
+  titre: null, // épithète/surnom, ex: "Le Cinquième Empereur"
   race: null,
   origine: null,
   poste: null,

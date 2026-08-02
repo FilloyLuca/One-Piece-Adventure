@@ -262,6 +262,11 @@ function choisirDansScene(sceneId, indexChoix) {
     mettreAJourFiche();
     }
 
+  if (resultat.titre) {
+    joueur.titre = resultat.titre;
+    mettreAJourFiche();
+  }
+
   const texteResultat = resultat.resultat || resultat.texte || choix.texte;
   const pillsHTML = formaterEffetsPills(resultat.effets);
 
@@ -295,6 +300,9 @@ function continuerApresChoix() {
     lancerEvenementAleatoire();
   } else if (resultat.suivant === "FIN") {
     finDePartie();
+  } else if (resultat.suivant === "AIGUILLAGE_CLASSE") {
+    const sceneClasse = `arc2_${joueur.classe}_intro`;
+    demarrerScene(sceneClasse);
   } else {
     demarrerScene(resultat.suivant);
   }
@@ -357,8 +365,12 @@ function mettreAJourFiche() {
 
     const classeFruitInfo = joueur.classeFruit ? CLASSES_FRUIT[joueur.classeFruit] : null;
     const classeFruitHTML = classeFruitInfo
-    ? `<span class="badge-classe" style="color:${classeFruitInfo.couleur}; border-color:${classeFruitInfo.couleur}; background:${classeFruitInfo.couleur}1a;">${classeFruitInfo.emoji} ${classeFruitInfo.nom}</span>`
-    : "";
+      ? `<span class="badge-classe" style="color:${classeFruitInfo.couleur}; border-color:${classeFruitInfo.couleur}; background:${classeFruitInfo.couleur}1a;">${classeFruitInfo.emoji} ${classeFruitInfo.nom}</span>`
+      : "";
+
+    const titreHTML = joueur.titre
+      ? `<div style="font-style:italic; font-size:0.9rem; color:#7a2318; margin-top:2px;">« ${joueur.titre} »</div>`
+      : "";
 
     const raceInfo = joueur.race ? RACES[joueur.race] : null;
     const raceHTML = raceInfo
@@ -368,7 +380,7 @@ function mettreAJourFiche() {
   fiche.innerHTML = `
     <div style="display:flex; justify-content:space-between; align-items:flex-start; width:100%;">
       <div>
-        <strong style="font-size:1.1rem; color:#4a150e;">🏴‍☠️ ${joueur.nom || "Pirate"}</strong> ${raceHTML} ${classeHTML} ${classeFruitHTML}
+        <strong style="font-size:1.1rem; color:#4a150e;">🏴‍☠️ ${joueur.nom || "Pirate"}</strong> ${raceHTML} ${classeHTML} ${classeFruitHTML} ${titreHTML}
         <div style="font-size:0.85rem; margin-top:3px;">
           ❤️ ${joueur.stats.vie} · 🔋 ${joueur.stats.endurance} · 💪 ${joueur.stats.force} · ✨ ${joueur.stats.charisme} · 🧠 ${joueur.stats.intelligence} · ⚡ ${joueur.stats.vitesse} · 🏆 ${joueur.stats.reputation} · 💰 ${formaterBerrys(joueur.stats.argent)} · 📜 ${formaterBerrys(joueur.stats.prime)}
         </div>
@@ -422,7 +434,7 @@ function afficherDetailsPersonnage() {
 
     modalBody.innerHTML = `
     <h2 class="wanted-title" style="text-align:center;">WANTED</h2>
-    <h3 style="text-align:center; font-family:'Cinzel',serif; margin-bottom:5px; color:#7a2318;">${joueur.nom}</h3>
+    <h3 style="text-align:center; font-family:'Cinzel',serif; margin-bottom:5px; color:#7a2318;">${joueur.nom}</h3> ${joueur.titre ? `<p style="text-align:center; font-style:italic; margin-bottom:8px; color:#a13a2b;">« ${joueur.titre} »</p>` : ""}
     <p style="text-align:center; margin-bottom:10px; font-style:italic;">🎂 ${joueur.age} ans</p>
     <p style="text-align:center; margin-bottom:10px; font-size:1.3rem; font-weight:bold; color:#a13a2b;">
         📜 ${formaterBerrys(joueur.stats.prime)}
@@ -552,7 +564,12 @@ function choisirDansEvenement(evenementId, indexChoix) {
   if (resultat.classeFruit) {
     joueur.classeFruit = resultat.classeFruit;
     mettreAJourFiche();
-}
+  }
+
+  if (resultat.titre) {
+    joueur.titre = resultat.titre;
+    mettreAJourFiche();
+  }
 
   const texteResultat = resultat.resultat || resultat.texte || choix.texte;
   const pillsHTML = formaterEffetsPills(resultat.effets);
@@ -819,7 +836,7 @@ function afficherPantheon() {
   } else {
     contenu.innerHTML = historique.map((entree, index) => `
       <div class="log-entry">
-        <span class="log-day">${entree.nom}</span><br>
+        <span class="log-day">${entree.nom} ${entree.age} ans</span><br>
         <span style="font-style:italic;">${entree.titre}</span> · ${formaterBerrys(entree.prime)} · ${entree.date}
       </div>
     `).join("");

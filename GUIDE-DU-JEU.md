@@ -150,9 +150,13 @@ EVENEMENTS.push({
   titre: "Titre de l'événement",
   texte: () => `Texte de narration.`,
   poidsBase: 3,                          // poids de tirage (plus c'est grand, plus il a de chances de sortir)
-  condition: (j) => (j.stats.reputation > 8 ? 2 : 1),  // multiplie le poids selon l'état du joueur
+  condition: (j) => (j.stats.reputation > 8 ? 2 : 1),  // multiplie le poids selon l'état du joueur (0 = événement désactivé)
   choix: [
-    { texte: "...", effets: {...}, suivant: "scene_suivante" }
+    { 
+      texte: "...", 
+      effets: {...}, 
+      suivant: "scene_suivante"  // accept aussi : "EVENEMENT", "AIGUILLAGE_CLASSE", ou "FIN"
+    }
   ]
 });
 ```
@@ -290,6 +294,29 @@ Le badge apparaît automatiquement à côté du nom du joueur (fiche + WANTED), 
 
 ---
 
+## 👑 Titre / Surnom (épithète)
+
+Contrairement à `classe` et `classeFruit` (qui viennent de listes prédéfinies dans `classes.js`), le **titre** est une simple chaîne de texte libre, accordée manuellement comme récompense narrative sur n'importe quel choix — pas besoin de le déclarer nulle part à l'avance.
+
+```js
+{
+  texte: "Écraser la flotte ennemie sans pitié",
+  resultat: "Ton nom se répand comme une traînée de poudre. On te surnomme désormais...",
+  titre: "Le Cinquième Empereur",
+  effets: { reputation: 5, prime: 50000000 },
+  suivant: "EVENEMENT"
+}
+```
+
+Stocké dans `joueur.titre` (chaîne ou `null`). Chaque nouvelle attribution **remplace** l'ancien titre (comme dans One Piece, où le surnom évolue avec la réputation) — ce n'est pas un tableau cumulatif.
+
+Affiché automatiquement en italique façon épithète (`« Le Cinquième Empereur »`) à trois endroits :
+- Sous le nom, dans la fiche du haut (`mettreAJourFiche()`)
+- Sous le nom, dans la modale WANTED (`afficherDetailsPersonnage()`)
+- Sous le nom, dans l'écran de fin de partie (`terminerPartie()`)
+
+---
+
 ## 🤝 Statuts de relation et couleurs
 
 Gérés par `couleurStatutRelation()` dans `moteur-scenes.js`. Détection par mot-clé (insensible à la casse) :
@@ -351,6 +378,77 @@ Pour ajouter une musique à la playlist : place le fichier dans `audio/`, puis a
 3. **Relations** 🤝 (colorées selon le statut)
 
 Le nom du joueur est accompagné, dans l'ordre, de : badge **race**, badge **classe**, badge **classe fruit**.
+
+---
+
+## 🎭 Personnaliser l'histoire selon la classe du joueur
+
+Deux façons de faire vivre une histoire différente selon que le joueur est Pirate, Marine ou Révolutionnaire. **C'est l'Option A qui est utilisée actuellement dans le projet.**
+
+### ✅ Option A (retenue) — Un seul arc, avec des scènes filtrées par classe
+
+Toutes les classes traversent le **même fichier d'arc** (`arc2.js`, `arc3.js`...), mais certaines scènes/événements ne s'affichent (ou ne sont accessibles) que pour une classe donnée, via le système `requis`/`interdit` déjà en place, ou via un aiguillage dédié en début d'arc.
+
+**Avantages** : un seul fichier à gérer par arc, cohérence temporelle entre les classes (tout le monde vit "la même période" de l'histoire), possibilité de réutiliser des scènes communes.
+
+**Aiguillage vers une scène différente selon la classe**, en début d'arc :
+
+```js
+arc2_debut: {
+  categorie: "Moment de vie",
+  titre: "Un nouveau chapitre",
+  texte: () => `Le temps a passé. ${joueur.nom} n'est plus le même qu'au premier jour.`,
+  choix: [
+    {
+      texte: "Continuer",
+      effets: {},
+      suivant: "AIGUILLAGE_CLASSE" // valeur spéciale, gérée dans moteur-scenes.js
+    }
+  ]
+}
+```
+
+Le moteur (`continuerApresChoix()` dans `moteur-scenes.js`) reconnaît cette valeur spéciale et redirige automatiquement vers `arc2_${joueur.classe}_intro` :
+
+```js
+} else if (resultat.suivant === "AIGUILLAGE_CLASSE") {
+  const sceneClasse = `arc2_${joueur.classe}_intro`;
+  demarrerScene(sceneClasse);
+}
+```
+
+Il suffit ensuite d'écrire une scène d'intro par classe (`arc2_pirate_intro`, `arc2_marine_intro`, `arc2_revolutionnaire_intro`), qui peuvent reconverger vers une scène commune plus tard dans l'arc, ou continuer à diverger selon ce que tu veux raconter.
+
+⚠️ Ne jamais écrire `suivant: joueur.classe === "pirate" ? "..." : "..."` directement dans les données — au moment où `SCENES` est rempli (chargement de la page), `joueur.classe` n'est pas encore défini. Toujours passer par une valeur spéciale interceptée dans le moteur, comme `"AIGUILLAGE_CLASSE"` ci-dessus.
+
+**Pour un événement aléatoire réservé à une classe**, pas besoin d'aiguillage — utilise directement `condition` avec un poids de `0` pour les autres classes :
+
+```js
+{
+  id: "patrouille_marine_traque",
+  categorie: "Danger",
+  titre: "Traqué par tes anciens frères d'armes",
+  texte: () => `Une patrouille marine te reconnaît...`,
+  poidsBase: 4,
+  condition: (j) => (j.classe === "pirate" ? 1 : 0), // n'apparaît QUE pour les pirates
+  choix: [ /* ... */ ]
+}
+```
+
+### 🔮 Option B (non implémentée, pour plus tard) — Un arc séparé par classe
+
+Idée à garder en tête si l'Option A devient trop contraignante : au lieu d'un seul `arc2.js`, créer un fichier par classe — par exemple `arc2_pirate.js`, `arc2_marine.js`, `arc2_revolutionnaire.js` — chacun avec sa propre trame `SCENES`/`EVENEMENTS`, complètement indépendante des autres.
+
+**Avantages** : liberté totale pour adapter le ton, le rythme et les enjeux à chaque faction, sans avoir à faire "rentrer" toutes les classes dans les mêmes scènes.
+
+**Inconvénients** : environ trois fois plus de contenu à écrire pour couvrir "un seul arc", et il faut gérer l'aiguillage vers le bon fichier dès la fin de l'arc précédent (techniquement simple — même principe d'aiguillage que l'Option A, mais vers des scènes qui vivent dans des fichiers différents plutôt que dans le même).
+
+**Comment basculer vers cette option si besoin** :
+1. Créer `js/donnees/arc2_pirate.js`, `arc2_marine.js`, `arc2_revolutionnaire.js` sur le modèle de `arc1.js`.
+2. Charger les trois fichiers dans `index.html`, avant `creation-personnage.js`.
+3. Utiliser le même système d'aiguillage `"AIGUILLAGE_CLASSE"` en fin d'arc précédent, mais qui pointe vers la première scène du bon fichier au lieu d'une simple scène d'intro dans le même fichier.
+
+Les deux options ne sont pas mutuellement exclusives sur l'ensemble du jeu — rien n'empêche de garder l'Option A pour certains arcs et de basculer vers l'Option B pour un arc où les parcours divergent trop fortement.
 
 ---
 

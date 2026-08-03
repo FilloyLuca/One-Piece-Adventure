@@ -28,10 +28,10 @@
     <!-- NAVIGATION EN PLAQUES DE BOIS -->
     <nav class="wood-nav">
       <button class="wood-plaque" onclick="afficherPantheon()">🏆 Panthéon</button>
-      <button class="wood-plaque">👑 Succès</button>
+      <button class="wood-plaque" onclick="afficherSucces()">👑 Succès</button>
       <!-- <button class="wood-plaque">📜 Quêtes</button> -->
       <button class="wood-plaque" onclick="afficherBoutique()">🛒 Boutique</button>
-      <button class="wood-plaque" onclick="afficherGuide()">📕 Guide & Explications</button>
+      <button class="wood-plaque" onclick="afficherGuide()">📕 Guide</button>
       <!--<button class="wood-plaque">⚙ Paramètres</button>-->
     </nav>
 
@@ -56,6 +56,17 @@
           <div class="logbook-title">🏆 Panthéon des Pirates</div>
           <button class="parchment-btn" style="margin-top:20px; margin-bottom:25px; width:100%;" onclick="fermerPantheon()">Retour au menu</button>
           <div id="pantheonContenu"></div>
+        </div>
+      </section>
+
+      <section id="succes" class="menu-section" style="display:none;">
+        <div class="logbook" style="max-width:900px; margin:0 auto; width:100%;">
+          <div class="logbook-title">👑 Panthéon des Succès</div>
+          <button class="parchment-btn" style="margin-top:20px; margin-bottom:25px; width:100%;" onclick="fermerSucces()">Retour au menu</button>
+          <p style="font-style:italic; font-size:0.9rem; text-align:center; margin-bottom:20px;">
+            « Chaque succès peut être obtenu plusieurs fois, à travers tes différentes vies de pirate. »
+          </p>
+          <div id="succesContenu"></div>
         </div>
       </section>
 
@@ -96,7 +107,7 @@
           <div class="book-page book-page-left">
             <h2 class="book-title">📜 Manuel du Marin</h2>
             <p style="font-style:italic; font-size:0.9rem; text-align:center; margin-bottom:15px;">
-              « Tout ce qu'un capitaine doit savoir avant de prendre la mer. »
+              « Tout ce qu'un marin doit savoir avant de prendre la mer. »
             </p>
             
             <div class="guide-tabs">
@@ -104,6 +115,7 @@
               <button class="parchment-btn" onclick="changerPageGuide(2)">🪙 Les Pièces</button>
               <button class="parchment-btn" onclick="changerPageGuide(3)">⚔️ Les Stats</button>
               <button class="parchment-btn" onclick="changerPageGuide(4)">🏆 Le Panthéon</button>
+              <button class="parchment-btn" onclick="changerPageGuide(5)">👑 Les Succès</button>
             </div>
           </div>
 
@@ -162,6 +174,9 @@
 <script src="js/etat-jeu.js"></script>
 <script src="js/donnees/classes.js"></script>
 <script src="js/donnees/arc1.js"></script>
+<script src="js/donnees/boutique.js"></script>
+<script src="js/donnees/guide.js"></script>
+<script src="js/donnees/succes.js"></script>
 <script src="js/creation-personnage.js"></script>
 <script src="js/moteur-scenes.js"></script>
 

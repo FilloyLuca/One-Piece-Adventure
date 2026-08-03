@@ -21,7 +21,9 @@ Aucune installation requise : le jeu tourne entièrement dans le navigateur, en 
 - **Fiche de personnage permanente** + affiche "WANTED" détaillée, consultables à tout moment.
 - **Récapitulatif de fin de partie** : parcours détaillé arc par arc, avec possibilité de télécharger sa fiche WANTED en image.
 - **Panthéon** des personnages précédents, sauvegardé localement.
-- **Pièces boutique** : gagnées à chaque fin de partie selon la prime finale, cumulées dans une réserve permanente (en vue d'une future boutique).
+- **Succès** : accomplissements groupés par catégorie (Rangs, Titres, Richesse, Aventure, Fruits du Démon, Relations, Destins...), cumulatifs et persistants au niveau du joueur réel (compteur `×N` si obtenus plusieurs fois). Un compteur global (`X / Y débloqués`) s'affiche en haut de l'onglet. Certains succès sont purement décoratifs, d'autres rapportent des pièces de boutique à chaque obtention.
+- **Boutique** : pièces gagnées à chaque fin de partie (selon la prime, le nombre d'arcs vécus et le rang final) et via certains succès, dépensables contre des objets à équiper pour la prochaine partie (jusqu'à 3 objets équipés simultanément). Certains objets de la boutique restent verrouillés tant qu'un succès précis n'a pas été débloqué au moins une fois.
+- **Guide en jeu** : "Manuel du Marin" consultable à tout moment, expliquant l'aventure, les pièces, les statistiques et le Panthéon.
 - **Sauvegarde automatique** de la partie en cours (reprise possible via "Continuer l'aventure").
 - **Ambiance sonore** : bruit de vagues en boucle + playlist musicale aléatoire, avec contrôle de volume.
 
@@ -49,10 +51,13 @@ js/
   etat-jeu.js                → initialise les banques de contenu (SCENES, EVENEMENTS)
   audio.js                   → gestion de l'ambiance sonore
   creation-personnage.js     → création de personnage + état du joueur
-  moteur-scenes.js           → moteur de jeu (scènes, choix, effets, fins)
+  moteur-scenes.js           → moteur de jeu (scènes, choix, effets, fins, succès, boutique)
   donnees/
     classes.js                → classes principales et fruits du démon
     arc1.js                    → contenu narratif du premier arc
+    boutique.js                → catalogue des objets achetables (avec déblocage optionnel via succès)
+    guide.js                   → contenu texte du "Manuel du Marin" (guide en jeu)
+    succes.js                  → catalogue des succès (récompensés ou décoratifs), groupés par catégorie
 
 audio/
   ambiance-vagues.mp3         → son d'ambiance en boucle
@@ -82,8 +87,8 @@ Ce guide est le point de référence pour comprendre et étendre le jeu — à c
 
 ## 📌 Roadmap / idées futures
 
-- Boutique dépensant les pièces accumulées en fin de partie (système de gain déjà en place).
 - Arcs suivants (2, 3, ...), avec personnalisation par classe (voir le guide, section "Personnaliser l'histoire selon la classe").
+- Succès secrets (masquer nom/description tant qu'ils ne sont pas débloqués).
 - Système multi-appareils pour la sauvegarde (nécessiterait un backend).
 
 ---

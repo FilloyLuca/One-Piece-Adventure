@@ -19,6 +19,9 @@ js/
     classes.js                 → définit CLASSES et CLASSES_FRUIT
     arc1.js                    → contenu narratif de l'arc 1 (scènes + événements)
     arc2.js, arc3.js...        → futurs arcs, même structure que arc1.js
+    boutique.js                → définit BOUTIQUE_CATALOGUE et MAX_EQUIPEMENT_BOUTIQUE
+    guide.js                   → définit pagesGuide (texte des pages du Manuel du Marin)
+    succes.js                  → définit SUCCES_CATALOGUE (groupé par catégorie : Rangs, Titres, Richesse...)
   creation-personnage.js       → écran de création de personnage + état initial du joueur (RACES, ORIGINES, POSTES, ENTOURAGES)
   moteur-scenes.js             → toute la logique du jeu (affichage, choix, effets, fins)
 
@@ -35,6 +38,9 @@ audio/
 <script src="js/donnees/classes.js"></script>
 <script src="js/donnees/arc1.js"></script>
 <!-- futurs arcs ici -->
+<script src="js/donnees/boutique.js"></script>
+<script src="js/donnees/guide.js"></script>
+<script src="js/donnees/succes.js"></script>
 <script src="js/creation-personnage.js"></script>
 <script src="js/moteur-scenes.js"></script>
 ```
@@ -361,6 +367,120 @@ Système basé sur `localStorage` (propre à l'appareil/navigateur, ne synchroni
 
 ---
 
+## 🏅 Système de succès
+
+Les succès récompensent certains accomplissements en fin de partie (rang final, prime, survie, relations, etc.). Contrairement au Panthéon (qui garde une trace de chaque personnage), les succès sont **cumulatifs et persistants au niveau du joueur réel** : ils survivent à travers toutes les parties, et peuvent être obtenus plusieurs fois (un compteur `×N` s'affiche alors).
+
+### Fichiers concernés
+
+- `js/donnees/succes.js` → déclare `SUCCES_CATALOGUE`, le tableau de tous les succès du jeu, groupés par catégorie.
+- `moteur-scenes.js` → contient toute la logique (`chargerSucces`, `sauvegarderSucces`, `verifierEtDebloquerSucces`, `afficherSucces`, `fermerSucces`), ainsi que le branchement dans `terminerPartie()`.
+- `index.html` → section `#succes` (onglet accessible via le bouton "👑 Succès") + chargement de `js/donnees/succes.js` avant `moteur-scenes.js`.
+- `style.css` → classes `.succes-*` pour l'affichage en grille, `.badge-succes` pour le récap de fin de partie, et `.book-item-verrouille` pour les objets boutique verrouillés par un succès.
+- `js/donnees/boutique.js` + `mettreAJourBoutique()` (`moteur-scenes.js`) → gèrent le déblocage optionnel d'objets via le champ `deblocage.succes` (voir "Débloquer un objet de la Boutique via un succès" plus bas).
+
+### Stockage
+
+Les succès obtenus sont stockés dans `localStorage`, sous la clé `op_succes`, sous la forme :
+
+```js
+{ "richesse_100m": 3, "titre_legende": 1, ... } // id du succès → nombre de fois obtenu
+```
+
+Ce compteur n'est **jamais réinitialisé** entre deux parties (contrairement à `joueur`), c'est ce qui permet d'afficher `×2`, `×3`... sur les succès répétés.
+
+### Ajouter un nouveau succès
+
+Ajoute une entrée dans `SUCCES_CATALOGUE` (`js/donnees/succes.js`) :
+
+```js
+{
+  id: "identifiant_unique",       // doit être unique dans tout le catalogue
+  groupe: "Richesse",              // détermine sous quel titre le succès apparaît dans l'onglet
+  nom: "Grande fortune",
+  emoji: "💰",
+  desc: "Termine une partie avec une prime d'au moins 100 000 000 ฿.",
+  recompense: { pieces: 30 },      // pièces de boutique données à CHAQUE obtention (répétable)
+  condition: (j, contexte) => contexte.prime >= 100_000_000
+}
+```
+
+`condition` reçoit :
+- `j` : l'objet `joueur` tel qu'il est à la toute fin de la partie (stats, classe, relations, objets, etc.)
+- `contexte` : `{ tierTitre, prime, arcs, typeFin }`
+  - `tierTitre` : `"bas"` | `"moyen"` | `"haut"` | `"legende"` (calculé dans `finRetraite()` / `finDePartie()`)
+  - `prime` : prime finale
+  - `arcs` : nombre d'arcs terminés (`joueur.historique.length`)
+  - `typeFin` : `"normale"` (fin de contenu) | `"retraite"` (40 ans atteints) | `"premature_vie"` (mort) | `"premature_endurance"` (surmenage)
+
+⚠️ Tous les succès sont vérifiés **uniquement en fin de partie**, dans `terminerPartie()` — pas besoin d'appeler quoi que ce soit ailleurs dans le code narratif (`arcX.js`) pour qu'un succès basé sur les stats/relations/objets du joueur fonctionne, du moment que ces informations sont encore présentes sur `joueur` au moment où la partie se termine.
+
+### Groupes et affichage
+
+L'onglet Succès (`afficherSucces()` dans `moteur-scenes.js`) regroupe automatiquement les entrées de `SUCCES_CATALOGUE` par leur champ `groupe`, dans l'ordre où elles apparaissent dans le fichier — pas besoin de déclarer les groupes à part. Les groupes actuels : **Rangs**, **Titres**, **Richesse**, **Aventure**, **Fruits du Démon**, **Relations**, **Destins** — libre à toi d'en ajouter d'autres en donnant simplement une nouvelle valeur à `groupe`.
+
+Chaque carte affiche : emoji, nom, description et récompense en pièces (si le succès en donne — voir "Récompenses" ci-dessous). Un succès non encore obtenu reste **visible mais grisé** (pas de mystère façon "succès caché" pour l'instant — si tu veux ajouter des succès secrets plus tard, il suffira de masquer `nom`/`desc` tant que `compteur === 0` dans `afficherSucces()`).
+
+En haut de l'onglet, un compteur global affiche **combien de succès sont débloqués sur le total** (`X / Y succès débloqués`), calculé à partir de `SUCCES_CATALOGUE.length` et du nombre d'entrées de `chargerSucces()` dont le compteur est `> 0`.
+
+### Récompenses (succès décoratifs vs succès récompensés)
+
+Le champ `recompense` sur un succès est **optionnel** :
+
+- **Pas de `recompense`** → le succès est purement décoratif / orienté complétionniste. Il apparaît dans l'onglet, se débloque normalement, mais ne rapporte rien.
+- **`recompense: { pieces: N }`** → à chaque obtention (y compris les répétitions), `N` pièces de boutique sont ajoutées à la réserve (`ajouterPiecesBoutique`), en plus des pièces habituelles de fin de partie (prime, arcs vécus, tier du titre).
+
+```js
+// Décoratif, aucune récompense
+{
+  id: "explorateur_complet",
+  groupe: "Aventure",
+  nom: "Cartographe complet",
+  emoji: "🗺️",
+  desc: "Un succès juste pour la fierté, sans récompense.",
+  condition: (j) => /* ... */
+}
+
+// Récompensé en pièces
+{
+  id: "richesse_100m",
+  groupe: "Richesse",
+  nom: "Grande fortune",
+  emoji: "💰",
+  desc: "Termine une partie avec une prime d'au moins 100 000 000 ฿.",
+  recompense: { pieces: 30 },
+  condition: (j, c) => c.prime >= 100_000_000
+}
+```
+
+Le récapitulatif de fin de partie (`terminerPartie()`) affiche la liste des succès obtenus **lors de cette partie précise**, avec leur compteur global si `> 1`.
+
+⚠️ Les récompenses `objets` / `competences` directement sur un succès ne sont **pas** gérées (et volontairement pas prévues) : donner un objet à la fin de partie n'aurait aucun effet, puisque `joueur` est réinitialisé à la partie suivante. Pour donner accès à un objet de façon permanente via un succès, passe par le **déblocage d'objets boutique** ci-dessous.
+
+### Débloquer un objet de la Boutique via un succès
+
+Un objet de `BOUTIQUE_CATALOGUE` (`js/donnees/boutique.js`) peut être **verrouillé tant qu'un succès donné n'a pas été obtenu au moins une fois**, en ajoutant un champ `deblocage` :
+
+```js
+{
+  id: "cape_legende",
+  nom: "Cape du Roi des Pirates",
+  emoji: "🧥",
+  desc: "Une cape légendaire, réservée à ceux qui ont prouvé leur valeur. (+5 Charisme, +5 Réputation)",
+  prix: 250,
+  effets: { objets: ["Cape du Roi des Pirates"], charisme: 5, reputation: 5 },
+  deblocage: { succes: "titre_legende" }   // id exact d'une entrée de SUCCES_CATALOGUE
+}
+```
+
+Tant que le succès `titre_legende` n'a jamais été obtenu (`chargerSucces()["titre_legende"]` absent ou à `0`), l'objet apparaît dans la boutique sous forme de carte grisée `🔒 ???` avec le nom du succès requis, sans bouton d'achat actif (`mettreAJourBoutique()` dans `moteur-scenes.js`). Dès que le succès est débloqué (à n'importe quelle fin de partie, passée ou future), l'objet devient normalement achetable, comme n'importe quel autre article.
+
+`acheterObjetBoutique()` revérifie aussi ce verrouillage côté logique (pas seulement à l'affichage), donc un objet verrouillé ne peut pas être acheté même en modifiant le DOM.
+
+Un objet de la boutique sans champ `deblocage` reste, comme avant, disponible dès que le joueur a assez de pièces — ce système est entièrement optionnel, à ajouter seulement sur les objets que tu veux réserver.
+
+---
+
 ## 🔊 Système audio
 
 - **Ambiance de vagues** : boucle continue, indépendante de la musique, démarrée/coupée via le bouton 🎵.
@@ -462,17 +582,67 @@ Les deux options ne sont pas mutuellement exclusives sur l'ensemble du jeu — r
 
 ---
 
-## 🧹 Réinitialiser le Panthéon (Remise à zéro)
+## 🧹 Réinitialiser les données du jeu (localStorage)
 
-Si tu souhaites effacer l'historique des légendes et repartir sur un Panthéon tout neuf, tu peux exécuter une commande de nettoyage :
+Toutes les données persistantes du jeu vivent dans le `localStorage` du navigateur, chacune sous sa propre clé. Tu peux les effacer indépendamment les unes des autres — effacer le Panthéon n'efface pas les succès, effacer les succès n'efface pas la boutique, etc.
+
+**Comment exécuter une commande de nettoyage :**
 
 1. Ouvre la console de ton navigateur en appuyant sur `F12` (ou `Ctrl` + `Maj` + `I`).
 2. Clique sur l'onglet **Console**.
-3. Colle la commande suivante et appuie sur `Entrée` :
+3. Colle la commande souhaitée ci-dessous et appuie sur `Entrée`.
 
-``javascript
+### Panthéon des Pirates (scores/légendes enregistrés)
+
+```javascript
 localStorage.removeItem("op_pantheon");
+```
 
-⚠️ Attention : Cette action est irréversible et supprimera définitivement tous les scores enregistrés.
+### Succès débloqués (compteurs `×N` de l'onglet "👑 Succès")
 
-*Dernière mise à jour de ce guide : à compléter à chaque nouvelle fonctionnalité majeure.*
+```javascript
+localStorage.removeItem("op_succes");
+```
+
+⚠️ Réinitialiser cette clé **reverrouille aussi tout objet de boutique** dont le déblocage dépend d'un succès (`deblocage.succes`), même si l'objet avait déjà été acheté.
+
+### Objets achetés dans la Boutique
+
+```javascript
+localStorage.removeItem("op_boutique_achats");
+```
+
+⚠️ Efface la possession des objets, **mais pas** les pièces déjà dépensées pour les acheter — elles ne sont pas remboursées.
+
+### Équipement actif (objets sélectionnés pour la prochaine partie)
+
+```javascript
+localStorage.removeItem("op_boutique_equipement");
+```
+
+Sans effet sur les objets déjà possédés (`op_boutique_achats`) : ça vide juste la sélection des objets équipés pour la prochaine partie.
+
+### Réserve de pièces de Boutique
+
+```javascript
+localStorage.removeItem("op_pieces_boutique");
+```
+
+### Sauvegarde de la partie en cours (bouton "Continuer l'aventure")
+
+```javascript
+localStorage.removeItem("op_sauvegarde");
+```
+
+### Tout réinitialiser d'un coup
+
+```javascript
+["op_pantheon", "op_succes", "op_boutique_achats", "op_boutique_equipement", "op_pieces_boutique", "op_sauvegarde"]
+  .forEach(cle => localStorage.removeItem(cle));
+```
+
+⚠️ **Attention** : toutes ces actions sont irréversibles et suppriment définitivement les données concernées (scores, succès, objets possédés, pièces, ou progression en cours, selon la commande utilisée).
+
+---
+
+*Dernière mise à jour de ce guide : ajout du compteur de succès débloqués/total dans l'onglet Succès, distinction succès décoratifs vs récompensés (`recompense` optionnel), système de déblocage d'objets Boutique via succès (`deblocage.succes`), et commandes de réinitialisation détaillées par clé `localStorage`.*

@@ -610,15 +610,17 @@ function etatCritiqueAtteint() {
 }
 
 function afficherFinPrematuree() {
-  let raison, titre;
+  let raison, titre, typeFin;
   if (joueur.stats.endurance <= -50)  {
     raison = "Tu n'as pas su gérer ton endurance et ton corps a lâché.";
     titre = "Surmenage fatal";
+    typeFin = "premature_endurance";
   }else if (joueur.stats.vie <= 0) {
     raison = "Tu as été gravement blessé et n'as pas survécu à tes blessures.";
     titre = "Mort tragique";
+    typeFin = "premature_vie";
   }
-  terminerPartie(titre, raison, 0);
+  terminerPartie(titre, raison, 0, "bas", typeFin);
 }
 
 function finRetraite() {
@@ -671,7 +673,7 @@ function finRetraite() {
     choix = fins.normal; tierTitre = "bas";
   }
 
-  terminerPartie(choix.titre, choix.raison, primeBrute, tierTitre);
+  terminerPartie(choix.titre, choix.raison, primeBrute, tierTitre, "retraite");
 }
 
 function finDePartie() {
@@ -712,16 +714,32 @@ function finDePartie() {
   else if (primeBrute >= 30_000_000) { titre = titres.moyen; tierTitre = "moyen"; }
   else { titre = titres.bas; tierTitre = "bas"; }
 
-  terminerPartie(titre, "Ton aventure touche à sa fin, pour l'instant...", primeBrute, tierTitre);
+  terminerPartie(titre, "Ton aventure touche à sa fin, pour l'instant...", primeBrute, tierTitre, "normale");
 }
 
-function terminerPartie(titre, raison, prime, tierTitre = "bas") {
+function terminerPartie(titre, raison, prime, tierTitre = "bas", typeFin = "normale") {
   supprimerSauvegarde();
   sauvegarderDansPantheon(titre, prime);
 
   const nombreArcs = joueur.historique.length;
+
+  // Vérifie et débloque les succès correspondant à cette fin de partie
+  const contexteSucces = { tierTitre, prime, arcs: nombreArcs, typeFin };
+  const resultatSucces = verifierEtDebloquerSucces(contexteSucces);
+
   const detailPieces = calculerPiecesGagnees(prime, nombreArcs, tierTitre);
-  const totalPieces = ajouterPiecesBoutique(detailPieces.total);
+  const totalAvecSucces = detailPieces.total + resultatSucces.piecesGagnees;
+  const totalPieces = ajouterPiecesBoutique(totalAvecSucces);
+
+  const succesHTML = resultatSucces.debloquesCetteFois.length ? `
+    <div class="log-entry" style="margin-top:15px; background:rgba(212,175,55,0.1);">
+      <span class="log-day">🏅 Succès obtenus${resultatSucces.piecesGagnees > 0 ? ` (+${resultatSucces.piecesGagnees} 🪙)` : ""}</span>
+      <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+        ${resultatSucces.debloquesCetteFois.map(s => `
+          <span class="badge-succes">${s.emoji} ${s.nom}${s.compteur > 1 ? ` <small>x${s.compteur}</small>` : ""}</span>
+        `).join("")}
+      </div>
+    </div>` : "";
 
   const recapArcsHTML = joueur.historique.map(arc => `
     <div class="log-entry" style="text-align:left;">
@@ -742,11 +760,12 @@ function terminerPartie(titre, raison, prime, tierTitre = "bas") {
       <p style="margin-top:15px; font-style:italic;">${raison}</p>
 
       <div class="log-entry" style="margin-top:15px; background:rgba(212,175,55,0.1);">
-        <span class="log-day">🪙 Pièces gagnées</span> +${detailPieces.total} (total : ${totalPieces})
+        <span class="log-day">🪙 Pièces gagnées</span> +${totalAvecSucces} (total : ${totalPieces})
         <div style="font-size:0.75rem; color:#7a2318; margin-top:4px;">
-          💰 ${detailPieces.base} (prime) · 📅 ${detailPieces.bonusArcs} (${nombreArcs} arc${nombreArcs > 1 ? "s" : ""} vécu${nombreArcs > 1 ? "s" : ""}) · 🏅 ${detailPieces.bonusTitre} (titre)
+          💰 ${detailPieces.base} (prime) · 📅 ${detailPieces.bonusArcs} (${nombreArcs} arc${nombreArcs > 1 ? "s" : ""} vécu${nombreArcs > 1 ? "s" : ""}) · 🏅 ${detailPieces.bonusTitre} (titre) · 👑 ${resultatSucces.piecesGagnees} (succès)
         </div>
       </div>
+      ${succesHTML}
 
       <div style="margin-top:20px; text-align:left;">
         <h3 style="font-family:'Pirata One', cursive; margin-bottom:10px; color:#4a150e;">📜 Ton parcours</h3>
@@ -905,60 +924,112 @@ function fermerPantheon() {
   if (menuPrincipal) menuPrincipal.style.display = "flex";
 }
 
+// ---------- SUCCÈS ----------
+// Le catalogue SUCCES_CATALOGUE est défini dans js/donnees/succes.js
+
+// Stockage : op_succes = { [id]: nombreDeFois } dans localStorage (persiste entre les parties)
+function chargerSucces() {
+  return JSON.parse(localStorage.getItem("op_succes") || "{}");
+}
+
+function sauvegarderSucces(obj) {
+  localStorage.setItem("op_succes", JSON.stringify(obj));
+}
+
+// Vérifie tous les succès du catalogue par rapport à l'état du joueur en fin de partie,
+// incrémente leur compteur s'ils sont obtenus, et retourne le détail de ce qui a été débloqué.
+function verifierEtDebloquerSucces(contexte) {
+  const succesActuels = chargerSucces();
+  const debloquesCetteFois = [];
+  let piecesGagnees = 0;
+
+  SUCCES_CATALOGUE.forEach(succes => {
+    let obtenu = false;
+    try {
+      obtenu = succes.condition(joueur, contexte);
+    } catch (e) {
+      obtenu = false;
+    }
+    if (obtenu) {
+      const compteurPrecedent = succesActuels[succes.id] || 0;
+      const compteur = compteurPrecedent + 1;
+      succesActuels[succes.id] = compteur;
+      debloquesCetteFois.push({ ...succes, compteur });
+      if (succes.recompense && succes.recompense.pieces) {
+        piecesGagnees += succes.recompense.pieces;
+      }
+    }
+  });
+
+  sauvegarderSucces(succesActuels);
+  return { debloquesCetteFois, piecesGagnees };
+}
+
+// Affiche l'onglet Succès : cartes groupées par `groupe`, avec compteur ×N si obtenu plusieurs fois
+function afficherSucces() {
+  cacherTousLesMenus();
+
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const succesSection = document.getElementById("succes");
+  const contenu = document.getElementById("succesContenu");
+  if (!contenu) return;
+
+  const succesObtenus = chargerSucces();
+  const totalSucces = SUCCES_CATALOGUE.length;
+  const totalDebloques = SUCCES_CATALOGUE.filter(s => (succesObtenus[s.id] || 0) > 0).length;
+
+  // Regroupe le catalogue par `groupe`, en conservant l'ordre d'apparition dans SUCCES_CATALOGUE
+  const groupes = {};
+  const ordreGroupes = [];
+  SUCCES_CATALOGUE.forEach(s => {
+    if (!groupes[s.groupe]) {
+      groupes[s.groupe] = [];
+      ordreGroupes.push(s.groupe);
+    }
+    groupes[s.groupe].push(s);
+  });
+
+  let html = `
+    <div style="text-align:center; margin-bottom:25px;">
+      <span style="font-family:'Pirata One', cursive; font-size:1.4rem; color:#4a150e;">
+        🏅 ${totalDebloques} / ${totalSucces} succès débloqués
+      </span>
+    </div>`;
+
+  ordreGroupes.forEach(nomGroupe => {
+    html += `<h3 class="succes-groupe-titre">${nomGroupe}</h3>`;
+    html += `<div class="succes-grille">`;
+    groupes[nomGroupe].forEach(s => {
+      const compteur = succesObtenus[s.id] || 0;
+      const debloque = compteur > 0;
+      html += `
+        <div class="succes-carte ${debloque ? "succes-carte-debloque" : "succes-carte-verrouille"}">
+          ${debloque && compteur > 1 ? `<span class="succes-badge-compteur">x${compteur}</span>` : ""}
+          <div class="succes-emoji">${s.emoji}</div>
+          <div class="succes-nom">${s.nom}</div>
+          <div class="succes-desc">${s.desc}</div>
+          ${s.recompense && s.recompense.pieces ? `<div class="succes-recompense">🪙 +${s.recompense.pieces}${debloque ? "" : " (à débloquer)"}</div>` : ""}
+        </div>`;
+    });
+    html += `</div>`;
+  });
+
+  contenu.innerHTML = html;
+
+  if (menuPrincipal) menuPrincipal.style.display = "none";
+  if (succesSection) succesSection.style.display = "block";
+}
+
+function fermerSucces() {
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const succesSection = document.getElementById("succes");
+
+  if (succesSection) succesSection.style.display = "none";
+  if (menuPrincipal) menuPrincipal.style.display = "flex";
+}
+
 // ---------- BOUTIQUE ----------
-
-const BOUTIQUE_CATALOGUE = [
-  {
-    id: "sabre_aiguise",
-    nom: "Sabre Aiguisé",
-    emoji: "⚔️",
-    desc: "Une lame de qualité, prête à en découdre dès le premier jour. (+3 Force)",
-    prix: 100,
-    effets: { objet: ["Sabre aiguisé"], force: 3 }
-  },
-  {
-    id: "amulette_charisme",
-    nom: "Amulette Porte-Bonheur",
-    emoji: "🧿",
-    desc: "Elle attire la sympathie... et parfois la chance. (+2 Charisme)",
-    prix: 60,
-    effets: { objet: ["Amulette porte bonheur"], charisme: 2 }
-  },
-  {
-    id: "bourse_garnie",
-    nom: "Bourse Bien Garnie",
-    emoji: "💰",
-    desc: "Un petit pécule pour bien commencer l'aventure. (+50 Argent)",
-    prix: 50,
-    effets: { argent: 500 }
-  },
-  {
-    id: "carte_ancienne",
-    nom: "Carte au Trésor Ancienne",
-    emoji: "🗺️",
-    desc: "Un vieux parchemin qui pourrait bien mener à un trésor oublié. (+1 Objet)",
-    prix: 80,
-    effets: { objets: ["Carte au Trésor Ancienne"] }
-  },
-  {
-    id: "log_pose",
-    nom: "Vieux Log Pose",
-    emoji: "🧭",
-    desc: "Un compas usé mais fiable, qui a déjà traversé bien des tempêtes. (+1 Objet, +10 Endurance)",
-    prix: 120,
-    effets: { objets: ["Vieux Log Pose"], endurance: 10 }
-  },
-  {
-    id: "bottes_agiles",
-    nom: "Bottes Agiles",
-    emoji: "🥾",
-    desc: "Légères comme le vent, elles rendent chaque pas plus vif. (+3 Vitesse)",
-    prix: 90,
-    effets: { objets: ["Bottes agiles"], vitesse: 3 }
-  }
-];
-
-const MAX_EQUIPEMENT_BOUTIQUE = 3;
+// Le catalogue BOUTIQUE_CATALOGUE et MAX_EQUIPEMENT_BOUTIQUE sont définis dans js/donnees/boutique.js
 
 function chargerAchatsBoutique() {
   return JSON.parse(localStorage.getItem("op_boutique_achats") || "[]");
@@ -980,6 +1051,12 @@ function sauvegarderEquipementBoutique(equipement) {
 function acheterObjetBoutique(id) {
   const item = BOUTIQUE_CATALOGUE.find(i => i.id === id);
   if (!item) return;
+
+  // 🔒 Vérifie le verrouillage même côté logique
+  if (item.deblocage && item.deblocage.succes) {
+    const succesObtenus = chargerSucces();
+    if (!(succesObtenus[item.deblocage.succes] > 0)) return;
+  }
 
   const achats = chargerAchatsBoutique();
   if (achats.includes(id)) return; // déjà possédé
@@ -1031,15 +1108,29 @@ function mettreAJourBoutique() {
   const pieces = chargerPiecesBoutique();
   const achats = chargerAchatsBoutique();
   const equipement = chargerEquipementBoutique();
-
-  piecesEl.textContent = `🪙 ${pieces}`;
-  if (equipementInfoEl) {
-    equipementInfoEl.textContent = `🎒 ${equipement.length}/${MAX_EQUIPEMENT_BOUTIQUE}`;
-  }
+  const succesObtenus = chargerSucces();
 
   const itemsHTML = BOUTIQUE_CATALOGUE.map(item => {
     const possede = achats.includes(item.id);
     const equipe = equipement.includes(item.id);
+
+    // 🔒 Vérifie si l'objet est verrouillé par un succès
+    const verrouille = item.deblocage && item.deblocage.succes
+      && !(succesObtenus[item.deblocage.succes] > 0);
+
+    if (verrouille) {
+      const succesRequis = SUCCES_CATALOGUE.find(s => s.id === item.deblocage.succes);
+      const nomSucces = succesRequis ? succesRequis.nom : "un succès secret";
+      return `
+        <div class="book-item book-item-verrouille">
+          <div>
+            <strong>🔒 ???</strong>
+            <div style="font-size:0.8rem;">Débloqué par le succès : <em>${nomSucces}</em></div>
+          </div>
+          <button class="parchment-btn" disabled>Verrouillé</button>
+        </div>`;
+    }
+
     const peutAcheter = !possede && pieces >= item.prix;
 
     let classeItem = "book-item";
@@ -1064,6 +1155,10 @@ function mettreAJourBoutique() {
   }).join("");
 
   listeEl.innerHTML = itemsHTML;
+  piecesEl.textContent = `🪙 ${pieces}`;
+  if (equipementInfoEl) {
+    equipementInfoEl.textContent = `🎒 ${equipement.length}/${MAX_EQUIPEMENT_BOUTIQUE}`;
+  }
 }
 
 function afficherBoutique() {
@@ -1094,44 +1189,7 @@ function fermerBoutique() {
   if (menuPrincipal) menuPrincipal.style.display = "flex";
 }
 
-const pagesGuide = {
-  1: `
-    <h2 class="book-title">🌊 L'Aventure</h2>
-    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
-      <li><strong>Scènes :</strong> Choisis ton destin à chaque étape de l'histoire.</li>
-      <li><strong>Événements :</strong> La mer réserve des surprises (tempêtes, marchands, rencontres).</li>
-      <li><strong>Fin de partie :</strong> Atteins la fin de l'aventure pour calculer ta prime finale !</li>
-    </ul>
-  `,
-  2: `
-    <h2 class="book-title">🪙 Les Pièces</h2>
-    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
-      <li><strong>Comment en gagner ?</strong> En termianant ton histoire tu recevras des pièces en fonction de ta prime.</li>
-      <li><strong>Bazar :</strong> Utilise tes pièces dans la Boutique pour acheter des bonus pour tes prochaines parties.</li>
-    </ul>
-  `,
-  3: `
-    <h2 class="book-title">⚔️ Les Stats</h2>
-    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
-      <li><strong>❤️ Vie :</strong> Ne la laisse pas tomber à zéro !</li>
-      <li><strong>🔋 Endurance :</strong> Ne la laisse pas tomber à zéro !</li>
-      <li><strong>💪 Force :</strong> Détermine ta puissance en combat direct.</li>
-      <li><strong>✨ Charisme :</strong> Ton aura, ce que tu degages.</li>
-      <li><strong>🧠 Intelligence :</strong> Sert à ruser et analyser.</li>
-      <li><strong>🏆Reputation :</strong> Débloque du respect, des alliances... ou des ennemis mortels.</li>
-      <li><strong>⚡Vitesse :</strong> Sert à ruser, esquiver et analyser.</li>
-      <li><strong>💰 Argent :</b> Ton trésor personnel. Sert à acheter de l'équipement, payer les tavernes et négocier sur les marchés.</li>
-      <li><strong>🏴‍☠️ Prime :</b> Ta puissance en chiffre.</li>
-    </ul>
-  `,
-  4: `
-    <h2 class="book-title">🏆 Le Panthéon</h2>
-    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
-      <li>Chaque fin de partie enregistre ton Capitaine.</li>
-      <li>Tente de battre ton record personnel de prime pour figurer tout en haut du Registre des Légendes !</li>
-    </ul>
-  `
-};
+// Le contenu des pages du guide (pagesGuide) est défini dans js/donnees/guide.js
 
 function afficherGuide() {
   cacherTousLesMenus();

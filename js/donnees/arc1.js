@@ -2,13 +2,12 @@
 Object.assign(SCENES, {
     arc1_reveil: {
         categorie: "Moment de vie",
-        titre: "Le grand départ",
-        texte: () => `${joueur.nom} quitte enfin les côtes qui l'ont vu grandir. Un petit bateau de fortune tangue sous ses pieds.`,
+        titre: "Une vie monotone",
+        texte: () => `${joueur.nom} à l'aube de ses 17 ans est decider à quitter son ile natale et à ecrire son nom dans l'histoire. Maintenant il reste plus qu'a trouver un bateau.`,
         choix: [
             {
-                texte: "Foncer droit vers le large, sans regarder en arrière",
-                resultat: "Tu quittes le port sans un regard en arrière, le cœur léger et déterminé.",
-                effets: { moral: 1, reputation: 1 },
+                texte: "Foncer droit vers le port",
+                resultat: "Tu enfilles les premier habits qui passe et cours en direction du port.",
                 suivant: "arc1_rencontre"
             },
             {

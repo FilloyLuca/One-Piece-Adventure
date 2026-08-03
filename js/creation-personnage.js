@@ -4,31 +4,31 @@ const RACES = {
     nom: "Humain",
     emoji: "🧑",
     desc: "La race la plus commune, mais aussi la plus adaptable.",
-    bonus: { vie: 0, endurance: 0, force: 0, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0 }
+    bonus: { vie: 1, endurance: 1, force: 1, reputation: 0, charisme: 1, intelligence: 1, vitesse: 1, argent: 0, prime:0 }
   },
   buccaneers: {
     nom: "Buccaneer",
     emoji: "🩸",
     desc: "Une race spéciale d'humanoïdes presque éteinte, ils portent en eux un peu de sang géant.",
-    bonus: { vie: 10, endurance: 5, force: 3, reputation: 0, charisme: -2, intelligence: 0, vitesse: 0, argent: 0 }
+    bonus: { vie: 1, endurance: 2, force: 3, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0, prime:0 }
   },
   cyborg: {
     nom: "Cyborg",
     emoji: "🤖",
     desc: "Une autre forme de vie humaine, modifiée avec des machines et des métaux.",
-    bonus: { vie: 0, endurance: 3, force: 2, reputation: 0, charisme: -1, intelligence: 0, vitesse: 0, argent: 0 }
+    bonus: { vie: 0, endurance: 3, force: 2, reputation: 0, charisme: 0, intelligence: 1, vitesse: 0, argent: 0, prime:0 }
   },
   geant: {
     nom: "Géant",
     emoji: "🪨",
     desc: "Une race d'êtres largement plus grands que les autres races connues.",
-    bonus: { vie: 10, endurance: 10, force: 4, reputation: 0, charisme: -3, intelligence: 0, vitesse: -10, argent: 0 }
+    bonus: { vie: 1, endurance: 0, force: 5, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0, prime:0 }
   },
   homme_poisson: {
     nom: "Homme-poisson",
     emoji: "🐟",
     desc: "Biologiquement la fusion d'un homme et d'une espèce de poisson.",
-    bonus: { vie: 0, endurance: 2, force: 2, reputation: 0, charisme: 1, intelligence: 0, vitesse: 10, argent: 0 }
+    bonus: { vie: 0, endurance: 0, force: 2, reputation: 0, charisme: 1, intelligence: 0, vitesse: 4, argent: 0, prime:0 }
   }
 };
 
@@ -37,25 +37,25 @@ const ORIGINES = {
     nom: "Natif d'East Blue",
     emoji: "🌊",
     desc: "Une mer calme, loin des grands dangers. Peu de gloire, mais on y survit facilement.",
-    bonus: { force: 0, reputation: 0, charisme: 0, argent: 3, moral: 1 }
+    bonus: { vie: 5, endurance: 0, force: 0, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0, prime:0 }
   },
   westblue: {
     nom: "Natif de West Blue",
     emoji: "🌊",
     desc: "Une mer réputée pour sa criminalité et la puissance de ses mafias.",
-    bonus: { force: 3, reputation: 1, charisme: 0, argent: -2, moral: -3 }
+    bonus: { vie: 0, endurance: 2, force: 2, reputation: 0, charisme: 2, intelligence: 0, vitesse: 0, argent: 0, prime:100 }
   },
   northblue: {
     nom: "Natif de North Blue",
     emoji: "🌊",
     desc: "Une mer très influencée par le Royaume de Germa.",
-    bonus: { force: 3, reputation: 0, charisme: -1, argent: -1, moral: 1 }
+    bonus: { vie: 0, endurance: 2, force: 0, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0, prime:0 }
   },
   southblue: {
     nom: "Natif de South Blue",
     emoji: "🌊",
     desc: "Une mer connue pour sa faune marine unique et grande.",
-    bonus: { force: 0, reputation: 0, charisme: 0, argent: 4, moral: 2 }
+    bonus: { vie: 0, endurance: 5, force: 0, reputation: 0, charisme: 1, intelligence: 0, vitesse: 0, argent: 100, prime:0 }
   }
 };
 
@@ -64,43 +64,43 @@ const POSTES = {
     nom: "Combattant",
     emoji: "👊",
     desc: "Ta force brute parle pour toi.",
-    bonus: { force: 4, reputation: 1, charisme: 0, moral: 0 }
+    bonus: { vie: 0, endurance: 2, force: 4, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0, prime:0 }
   },
   epeiste: {
     nom: "Épéiste",
     emoji: "⚔️",
     desc: "Discipline et lame aiguisée.",
-    bonus: { force: 3, reputation: 2, charisme: 0, moral: 0 }
+    bonus: { vie: 0, endurance: 3, force: 2, reputation: 0, charisme: 0, intelligence: 0, vitesse: 1, argent: 0, prime:0 }
   },
   tireur: {
     nom: "Tireur d'élite",
     emoji: "🎯",
     desc: "Précision avant tout, jamais au contact.",
-    bonus: { force: 1, reputation: 1, charisme: 1, moral: 1 }
+    bonus: { vie: 0, endurance: 3, force: 0, reputation: 0, charisme: 0, intelligence: 0, vitesse: 3, argent: 0, prime:0 }
   },
   navigateur: {
     nom: "Navigateur",
     emoji: "🧭",
     desc: "Tu lis la mer et le ciel mieux que personne.",
-    bonus: { force: 0, reputation: 0, charisme: 2, moral: 2 }
+    bonus: { vie: 0, endurance: 0, force: 0, reputation: 3, charisme: 0, intelligence: 3, vitesse: 0, argent: 0, prime:0 }
   },
   medecin: {
     nom: "Médecin de bord",
     emoji: "💊",
     desc: "Indispensable à tout équipage qui compte survivre.",
-    bonus: { force: 0, reputation: 2, charisme: 1, moral: 1 }
+    bonus: { vie: 2, endurance: 0, force: 0, reputation: 0, charisme: 0, intelligence: 4, vitesse: 0, argent: 0, prime:0 }
   },
   cuisinier: {
     nom: "Cuisinier",
     emoji: "🍳",
     desc: "Le moral d'un équipage passe par son estomac.",
-    bonus: { force: 1, reputation: 0, charisme: 3, moral: 1 }
+    bonus: { vie: 4, endurance: 0, force: 0, reputation: 0, charisme: 1, intelligence: 0, vitesse: 1, argent: 0, prime:0 }
   },
   musicien: {
     nom: "Musicien",
     emoji: "🎵",
     desc: "Tu portes les légendes en chansons, et parfois tu en écris une nouvelle.",
-    bonus: { force: 0, reputation: 1, charisme: 4, moral: 1 }
+    bonus: { vie: 0, endurance: 0, force: 0, reputation: 1, charisme: 4, intelligence: 0, vitesse: 1, argent: 0, prime:0 }
   }
 };
 
@@ -109,25 +109,25 @@ const ENTOURAGES = {
     nom: "Mentor pirate retraité",
     emoji: "🧓",
     desc: "Un vieux loup de mer t'a tout appris avant de raccrocher.",
-    bonus: { force: 2, reputation: 1, charisme: 0, argent: 0, moral: 1 }
+    bonus: { vie: 0, endurance: 0, force: 2, reputation: 2, charisme: 2, intelligence: 0, vitesse: 0, argent: 0, prime:100 }
   },
   famille_marine: {
     nom: "Orphelin",
     emoji: "🕊️",
     desc: "On t'a recueilli dans la rue.",
-    bonus: { force: 0, reputation: -2, charisme: 1, argent: 2, moral: -1 }
+    bonus: { vie: 0, endurance: 4, force: 0, reputation: 1, charisme: 0, intelligence: 0, vitesse: 1, argent: 0, prime:0 }
   },
   orphelin: {
     nom: "Paysan",
     emoji: "🥕",
     desc: "Tu as grandi dans les champs, loin de la vie maritime.",
-    bonus: { force: 3, reputation: 0, charisme: 0, argent: -3, moral: 0 }
+    bonus: { vie: 3, endurance: 3, force: 0, reputation: 0, charisme: 0, intelligence: 0, vitesse: 0, argent: 0, prime:0 }
   },
   noble_dechu: {
     nom: "Noble déchu",
     emoji: "👑",
     desc: "Ta famille a tout perdu. Il ne te reste que ton nom... et ta rage.",
-    bonus: { force: 0, reputation: 3, charisme: 2, argent: -2, moral: -1 }
+    bonus: { vie: 0, endurance: 0, force: 0, reputation: 0, charisme: 2, intelligence: 2, vitesse: 0, argent: 1000, prime:50 }
   }
 };
 
@@ -136,19 +136,22 @@ const ENTOURAGES = {
 const PRENOMS_MASCULINS = [
   "Rekko", "Basil", "Dorian", "Fenrick", "Garnet", "Hektor", "Ismar",
   "Joran", "Kelvin", "Lorcan", "Magnus", "Nero", "Osgar", "Pello",
-  "Quentin", "Rasko", "Silvan", "Tarek", "Uldric", "Varek"
+  "Quentin", "Rasko", "Silvan", "Tarek", "Uldric", "Varek","Garp", "Silvers", "Bengar", "Doran", "Kaldor", "Jagger", "Vander", 
+  "Corvo", "Gideon", "Roderick", "Bartholemew", "Cyrus", "Zephyr", "Rald"
 ];
 
 const PRENOMS_FEMININS = [
   "Aria", "Belka", "Cyra", "Delma", "Elira", "Fennia", "Garance",
   "Halia", "Ilse", "Jessamine", "Kessa", "Lorelin", "Marisol", "Noreen",
-  "Odalys", "Perrine", "Quila", "Rosalind", "Selke", "Vianne"
+  "Odalys", "Perrine", "Quila", "Rosalind", "Selke", "Vianne","Belladonna", "Camellia", "Iris", "Azalea", "Isolda", "Giselle", 
+  "Tashigi", "Makino", "Stussen", "Alvida", "Freya", "Sola", "Olvia"
 ];
 
 const NOMS_FAMILLE = [
   "Corvain", "Duskbane", "Feralta", "Grimshaw", "Halveston", "Ironwake",
   "Kestrion", "Lowtide", "Marrow", "Nightsail", "Osprey", "Ravenscar",
-  "Saltborn", "Tidewell", "Vasker", "Wraithmoor", "Zephrion"
+  "Saltborn", "Tidewell", "Vasker", "Wraithmoor", "Zephrion","Ravenscar", "Silverberg", "Vanderbilt", "Montblanc", "Donquichote", 
+  "Vinsmokin", "Gol", "Portgast", "Karozumite", "Shimoutsukine", "Neferotarsi"
 ];
 
 function genererNomAleatoire(sexe) {
@@ -171,7 +174,7 @@ let joueur = {
   origine: null,
   poste: null,
   entourage: null,
-  stats: { vie: 100, endurance: 100, force: 5, charisme: 5, intelligence: 5, vitesse: 5, reputation: 5, argent: 10, prime:0 },
+  stats: { vie: 100, endurance: 100, force: 0, charisme: 0, intelligence: 0, vitesse: 0, reputation: 0, argent: 1000, prime:0 },
   objets: [],
   competences: [],   
   relations: [],  

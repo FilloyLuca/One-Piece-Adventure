@@ -13,7 +13,12 @@ const CLASSES = {
     nom: "Révolutionnaire",
     emoji: "✊",
     couleur: "#6b4f9e"
-  }
+  },
+  chasseurDePrimes: {
+    nom: "Chasseur de primes",
+    emoji: "📜",
+    couleur: "#029660"
+  },
 };
 
 const CLASSES_FRUIT = {

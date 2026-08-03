@@ -60,36 +60,27 @@
       </section>
 
       <section id="boutique" class="menu-section" style="display:none;">
-        <button class="parchment-btn" style="margin: 15px auto; display:block;" onclick="fermerBoutique()">Fermer le livre</button>
-        <div class="book-container">
-          
-          <!-- PAGE GAUCHE : Solde & Filtres -->
-          <div class="book-page book-page-left">
-            <h2 class="book-title">🏪 Bazar du Pirate</h2>
-            <div style="text-align:center; margin: 20px 0;">
-              <p style="font-size:1.1rem; color:#7a2318;">Tes Pièces :</p>
+        <div class="logbook" style="max-width:800px; margin:0 auto; width:100%;">
+          <div class="logbook-title">🛒 Bazar du Marchand</div>
+          <button class="parchment-btn" style="margin-top:20px; margin-bottom:15px; width:100%;" onclick="fermerBoutique()">Retour au menu</button>
+
+          <div class="boutique-solde-bloc">
+            <div class="boutique-solde-item">
+              <p style="font-size:1.1rem; color:#7a2318; margin:0;">Tes Pièces :</p>
               <span id="boutiquePieces" style="font-size:2rem; font-weight:bold; color:#b98a1f;">🪙 0</span>
             </div>
-            <p style="font-style:italic; font-size:0.9rem; text-align:center;">
-              « Tout ce qui se trouve ici a été négocié aux quatre coins de Grand Line. »
-            </p>
-          </div>
-
-          <!-- PAGE DROITE : Liste des Objets Achetables -->
-          <div class="book-page book-page-right">
-            <h2 class="book-title">📜 Catalogue</h2>
-            <div id="boutiqueListeObjets">
-              <!-- Généré dynamiquement en JS -->
-              <div class="book-item">
-                <div>
-                  <strong>🗡️ Sabre Meito</strong>
-                  <div style="font-size:0.8rem;">+2 Force permanente</div>
-                </div>
-                <button class="parchment-btn">🪙 50</button>
-              </div>
+            <div class="boutique-solde-item">
+              <p style="font-size:1.1rem; color:#7a2318; margin:0;">Équipement :</p>
+              <span id="boutiqueEquipementInfo" style="font-size:2rem; font-weight:bold; color:#7a2318;">🎒 0/3</span>
             </div>
           </div>
+          <p style="font-style:italic; font-size:0.9rem; text-align:center; margin-bottom:20px;">
+            « Tout ce qui se trouve ici a été négocié aux quatre coins de Grand Line. »
+          </p>
 
+          <div id="boutiqueListeObjets" class="boutique-grille">
+            <!-- Généré dynamiquement par mettreAJourBoutique() dans moteur-scenes.js -->
+          </div>
         </div>
       </section>
 

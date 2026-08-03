@@ -646,25 +646,32 @@ function finRetraite() {
       aime: { titre: "Voix du peuple", raison: "Adoré par ceux que tu as libérés, tu prends une retraite entourée de gratitude." },
       redoute: { titre: "Ennemi juré du gouvernement", raison: "Ta tête est mise à prix, mais ta cause survit. Tu disparais dans la clandestinité." },
       normal: { titre: "Ancien insurgé", raison: "Ton combat n'a pas tout changé, mais tu as fait ta part, à ta façon." }
+    },
+    chasseurDePrimes: {
+      legende: { titre: "Chasseur de primes légendaire", raison: "Ton nom est craint et respecté dans le monde entier. Tu raccroches ton fusil en héros." },
+      solitaire: { titre: "Chasseur de primes solitaire", raison: "Tu as traqué les criminels sans relâche, mais seul. Ta légende s'éteint dans l'ombre." },
+      aime: { titre: "Chasseur de primes respecté", raison: "Tes exploits sont connus et admirés. Tu prends une retraite paisible, entouré d'admiration." },
+      redoute: { titre: "Chasseur de primes redouté", raison: "Ta réputation de chasseur impitoyable te suit jusqu'à la fin. Tu disparais discrètement." },
+      normal: { titre: "Vétéran chasseur de primes", raison: "Sans grande gloire, mais avec un sens du devoir accompli. Tu as vécu ta vie de chasseur de primes à ta manière." }
     }
   };
 
   const fins = finsParClasse[joueur.classe] || finsParClasse.pirate;
 
-  let choix;
+  let choix, tierTitre;
   if (primeBrute >= 300_000_000) {
-    choix = fins.legende;
+    choix = fins.legende; tierTitre = "legende";
   } else if (s.reputation >= 15 && s.charisme < 8) {
-    choix = fins.solitaire;
+    choix = fins.solitaire; tierTitre = "moyen";
   } else if (s.charisme >= 15) {
-    choix = fins.aime;
+    choix = fins.aime; tierTitre = "moyen";
   } else if (primeBrute >= 100_000_000) {
-    choix = fins.redoute;
+    choix = fins.redoute; tierTitre = "haut";
   } else {
-    choix = fins.normal;
+    choix = fins.normal; tierTitre = "bas";
   }
 
-  terminerPartie(choix.titre, choix.raison, primeBrute);
+  terminerPartie(choix.titre, choix.raison, primeBrute, tierTitre);
 }
 
 function finDePartie() {
@@ -688,26 +695,33 @@ function finDePartie() {
       moyen: "Agent de l'ombre",
       haut: "Figure de la révolution",
       legende: "Légende de l'Armée Révolutionnaire"
+    },
+    chasseurDePrimes: {
+      bas: "Chasseur de primes débutant",
+      moyen: "Chasseur de primes prometteur",
+      haut: "Chasseur de primes redouté",
+      legende: "Chasseur de primes légendaire"
     }
   };
 
   const titres = titresParClasse[joueur.classe] || titresParClasse.pirate;
 
-  let titre;
-  if (primeBrute >= 300_000_000) titre = titres.legende;
-  else if (primeBrute >= 100_000_000) titre = titres.haut;
-  else if (primeBrute >= 30_000_000) titre = titres.moyen;
-  else titre = titres.bas;
+  let titre, tierTitre;
+  if (primeBrute >= 300_000_000) { titre = titres.legende; tierTitre = "legende"; }
+  else if (primeBrute >= 100_000_000) { titre = titres.haut; tierTitre = "haut"; }
+  else if (primeBrute >= 30_000_000) { titre = titres.moyen; tierTitre = "moyen"; }
+  else { titre = titres.bas; tierTitre = "bas"; }
 
-  terminerPartie(titre, "Ton aventure touche à sa fin, pour l'instant...", primeBrute);
+  terminerPartie(titre, "Ton aventure touche à sa fin, pour l'instant...", primeBrute, tierTitre);
 }
 
-function terminerPartie(titre, raison, prime) {
+function terminerPartie(titre, raison, prime, tierTitre = "bas") {
   supprimerSauvegarde();
   sauvegarderDansPantheon(titre, prime);
 
-  const piecesGagnees = calculerPiecesGagnees(prime);
-  const totalPieces = ajouterPiecesBoutique(piecesGagnees);
+  const nombreArcs = joueur.historique.length;
+  const detailPieces = calculerPiecesGagnees(prime, nombreArcs, tierTitre);
+  const totalPieces = ajouterPiecesBoutique(detailPieces.total);
 
   const recapArcsHTML = joueur.historique.map(arc => `
     <div class="log-entry" style="text-align:left;">
@@ -728,7 +742,10 @@ function terminerPartie(titre, raison, prime) {
       <p style="margin-top:15px; font-style:italic;">${raison}</p>
 
       <div class="log-entry" style="margin-top:15px; background:rgba(212,175,55,0.1);">
-        <span class="log-day">🪙 Pièces gagnées</span> +${piecesGagnees} (total : ${totalPieces})
+        <span class="log-day">🪙 Pièces gagnées</span> +${detailPieces.total} (total : ${totalPieces})
+        <div style="font-size:0.75rem; color:#7a2318; margin-top:4px;">
+          💰 ${detailPieces.base} (prime) · 📅 ${detailPieces.bonusArcs} (${nombreArcs} arc${nombreArcs > 1 ? "s" : ""} vécu${nombreArcs > 1 ? "s" : ""}) · 🏅 ${detailPieces.bonusTitre} (titre)
+        </div>
       </div>
 
       <div style="margin-top:20px; text-align:left;">
@@ -886,6 +903,167 @@ function fermerPantheon() {
 
   if (pantheon) pantheon.style.display = "none";
   if (menuPrincipal) menuPrincipal.style.display = "flex";
+}
+
+// ---------- BOUTIQUE ----------
+
+const BOUTIQUE_CATALOGUE = [
+  {
+    id: "sabre_aiguise",
+    nom: "Sabre Aiguisé",
+    emoji: "⚔️",
+    desc: "Une lame de qualité, prête à en découdre dès le premier jour. (+3 Force)",
+    prix: 100,
+    effets: { objet: ["Sabre aiguisé"], force: 3 }
+  },
+  {
+    id: "amulette_charisme",
+    nom: "Amulette Porte-Bonheur",
+    emoji: "🧿",
+    desc: "Elle attire la sympathie... et parfois la chance. (+2 Charisme)",
+    prix: 60,
+    effets: { objet: ["Amulette porte bonheur"], charisme: 2 }
+  },
+  {
+    id: "bourse_garnie",
+    nom: "Bourse Bien Garnie",
+    emoji: "💰",
+    desc: "Un petit pécule pour bien commencer l'aventure. (+50 Argent)",
+    prix: 50,
+    effets: { argent: 500 }
+  },
+  {
+    id: "carte_ancienne",
+    nom: "Carte au Trésor Ancienne",
+    emoji: "🗺️",
+    desc: "Un vieux parchemin qui pourrait bien mener à un trésor oublié. (+1 Objet)",
+    prix: 80,
+    effets: { objets: ["Carte au Trésor Ancienne"] }
+  },
+  {
+    id: "log_pose",
+    nom: "Vieux Log Pose",
+    emoji: "🧭",
+    desc: "Un compas usé mais fiable, qui a déjà traversé bien des tempêtes. (+1 Objet, +10 Endurance)",
+    prix: 120,
+    effets: { objets: ["Vieux Log Pose"], endurance: 10 }
+  },
+  {
+    id: "bottes_agiles",
+    nom: "Bottes Agiles",
+    emoji: "🥾",
+    desc: "Légères comme le vent, elles rendent chaque pas plus vif. (+3 Vitesse)",
+    prix: 90,
+    effets: { objets: ["Bottes agiles"], vitesse: 3 }
+  }
+];
+
+const MAX_EQUIPEMENT_BOUTIQUE = 3;
+
+function chargerAchatsBoutique() {
+  return JSON.parse(localStorage.getItem("op_boutique_achats") || "[]");
+}
+
+function sauvegarderAchatsBoutique(achats) {
+  localStorage.setItem("op_boutique_achats", JSON.stringify(achats));
+}
+
+function chargerEquipementBoutique() {
+  return JSON.parse(localStorage.getItem("op_boutique_equipement") || "[]");
+}
+
+function sauvegarderEquipementBoutique(equipement) {
+  localStorage.setItem("op_boutique_equipement", JSON.stringify(equipement));
+}
+
+// Achète un objet : vérifie qu'il n'est pas déjà possédé et que le joueur a assez de pièces
+function acheterObjetBoutique(id) {
+  const item = BOUTIQUE_CATALOGUE.find(i => i.id === id);
+  if (!item) return;
+
+  const achats = chargerAchatsBoutique();
+  if (achats.includes(id)) return; // déjà possédé
+
+  const pieces = chargerPiecesBoutique();
+  if (pieces < item.prix) return; // pas assez de pièces
+
+  localStorage.setItem("op_pieces_boutique", (pieces - item.prix).toString());
+  achats.push(id);
+  sauvegarderAchatsBoutique(achats);
+
+  mettreAJourBoutique();
+}
+
+// Équipe/déséquipe un objet déjà possédé pour la prochaine partie (max MAX_EQUIPEMENT_BOUTIQUE)
+function toggleEquipementBoutique(id) {
+  const achats = chargerAchatsBoutique();
+  if (!achats.includes(id)) return; // pas possédé, rien à faire
+
+  let equipement = chargerEquipementBoutique();
+  if (equipement.includes(id)) {
+    equipement = equipement.filter(e => e !== id);
+  } else {
+    if (equipement.length >= MAX_EQUIPEMENT_BOUTIQUE) return; // limite atteinte
+    equipement.push(id);
+  }
+  sauvegarderEquipementBoutique(equipement);
+  mettreAJourBoutique();
+}
+
+// Applique les objets/bonus équipés au tout début d'une nouvelle partie (appelé depuis lancerAventure)
+function appliquerEquipementDepart() {
+  const equipement = chargerEquipementBoutique();
+  equipement.forEach(id => {
+    const item = BOUTIQUE_CATALOGUE.find(i => i.id === id);
+    if (item && item.effets) {
+      appliquerEffets(item.effets);
+    }
+  });
+}
+
+// Génère dynamiquement le solde et le catalogue dans la page de la boutique
+function mettreAJourBoutique() {
+  const piecesEl = document.getElementById("boutiquePieces");
+  const equipementInfoEl = document.getElementById("boutiqueEquipementInfo");
+  const listeEl = document.getElementById("boutiqueListeObjets");
+  if (!piecesEl || !listeEl) return;
+
+  const pieces = chargerPiecesBoutique();
+  const achats = chargerAchatsBoutique();
+  const equipement = chargerEquipementBoutique();
+
+  piecesEl.textContent = `🪙 ${pieces}`;
+  if (equipementInfoEl) {
+    equipementInfoEl.textContent = `🎒 ${equipement.length}/${MAX_EQUIPEMENT_BOUTIQUE}`;
+  }
+
+  const itemsHTML = BOUTIQUE_CATALOGUE.map(item => {
+    const possede = achats.includes(item.id);
+    const equipe = equipement.includes(item.id);
+    const peutAcheter = !possede && pieces >= item.prix;
+
+    let classeItem = "book-item";
+    if (possede) classeItem += " book-item-possede";
+    if (equipe) classeItem += " book-item-equipe";
+
+    let boutonHTML;
+    if (!possede) {
+      boutonHTML = `<button class="parchment-btn" ${peutAcheter ? "" : "disabled"} onclick="acheterObjetBoutique('${item.id}')">🪙 ${item.prix}</button>`;
+    } else {
+      boutonHTML = `<button class="parchment-btn" onclick="toggleEquipementBoutique('${item.id}')">${equipe ? "✅ Équipé" : "Équiper"}</button>`;
+    }
+
+    return `
+      <div class="${classeItem}">
+        <div>
+          <strong>${item.emoji} ${item.nom}</strong>
+          <div style="font-size:0.8rem;">${item.desc}</div>
+        </div>
+        ${boutonHTML}
+      </div>`;
+  }).join("");
+
+  listeEl.innerHTML = itemsHTML;
 }
 
 function afficherBoutique() {
@@ -1056,11 +1234,35 @@ function ajouterPiecesBoutique(montant) {
   return total;
 }
 
-function calculerPiecesGagnees(prime) {
-  return Math.floor(prime / 100_000);
+// Paliers de qualité de fin de partie, utilisés pour le bonus de titre.
+// "bas" < "moyen" < "haut" < "legende"
+const BONUS_PIECES_PAR_TIER = {
+  bas: 0,
+  moyen: 10,
+  haut: 25,
+  legende: 50
+};
+
+// Pièces gagnées par arc terminé (= 1 an vécu), en plus de la prime.
+const BONUS_PIECES_PAR_ARC = 1;
+
+function calculerPiecesGagnees(prime, nombreArcs = 0, tierTitre = "bas") {
+  const base = Math.floor(prime / 100_000);
+  const bonusArcs = nombreArcs * BONUS_PIECES_PAR_ARC;
+  const bonusTitre = BONUS_PIECES_PAR_TIER[tierTitre] || 0;
+
+  return {
+    total: base + bonusArcs + bonusTitre,
+    base,
+    bonusArcs,
+    bonusTitre
+  };
 }
 
 // Fonction de lancement appelée quand on clique sur "Prendre la mer"
 function lancerAventure() {
+  if (typeof appliquerEquipementDepart === "function") {
+    appliquerEquipementDepart();
+  }
   demarrerScene("arc1_reveil");
 }

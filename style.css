@@ -424,6 +424,62 @@ body {
   margin-bottom: 15px;
 }
 
+/* Objets du catalogue de la Boutique (grille de cartes, sans esthétique livre) */
+.boutique-solde-bloc {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 50px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.boutique-solde-item {
+  text-align: center;
+}
+
+.boutique-grille {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 16px;
+}
+
+.book-item {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background-color: var(--parchment-bg);
+  border: 1px solid var(--parchment-dark);
+  border-radius: 8px;
+  padding: 14px 16px;
+  box-shadow: inset 0 0 12px var(--parchment-dark), 2px 3px 5px rgba(0,0,0,0.25);
+}
+
+.book-item strong {
+  color: #4a150e;
+}
+
+.book-item .parchment-btn {
+  margin-top: 0;
+  align-self: stretch;
+  font-size: 0.85rem;
+  padding: 8px 14px;
+}
+
+.book-item .parchment-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.book-item-possede {
+  border-color: #1c7a5e;
+}
+
+.book-item-equipe {
+  box-shadow: 0 0 0 2px #b98a1f, inset 0 0 12px var(--parchment-dark), 2px 3px 5px rgba(0,0,0,0.25);
+}
+
 /* Panthéon : Journal de bord */
 .logbook {
   background: #ebd2be;

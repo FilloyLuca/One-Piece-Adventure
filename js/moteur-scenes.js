@@ -823,7 +823,17 @@ function formaterBerrys(montant) {
   return montant.toLocaleString("fr-FR") + " ฿";
 }
 
+// Fonction utilitaire pour cacher TOUTES les sections de menu
+function cacherTousLesMenus() {
+  const sections = document.querySelectorAll(".menu-section");
+  sections.forEach(section => {
+    section.style.display = "none";
+  });
+}
+
 function afficherPantheon() {
+  cacherTousLesMenus(); // 👈 Masque la boutique et les autres fenêtres
+
   const menuPrincipal = document.getElementById("menuPrincipal");
   const pantheon = document.getElementById("pantheon");
   const contenu = document.getElementById("pantheonContenu");
@@ -835,9 +845,33 @@ function afficherPantheon() {
     contenu.innerHTML = `<p style="text-align:center; padding:20px;">Aucun pirate n'a encore écrit sa légende. Sois le premier !</p>`;
   } else {
     contenu.innerHTML = historique.map((entree, index) => `
-      <div class="log-entry">
-        <span class="log-day">${entree.nom} ${entree.age} ans</span><br>
-        <span style="font-style:italic;">${entree.titre}</span> · ${formaterBerrys(entree.prime)} · ${entree.date}
+      
+      <div class="log-entry" style="margin-bottom: 15px; border-bottom: 1px dashed rgba(122,15,15,0.3); padding-bottom: 10px;">
+        <div style="font-weight: bold; font-size: 1.1rem; color: #7a0f0f;">
+          ${entree.nom} · ${entree.age} ans
+        </div>
+        
+        
+        <!-- Surnom / Épithète (masqué si null, undefined ou si c'est la chaîne "null") -->
+        ${(entree.surnom && entree.surnom !== "null" && entree.surnom !== "undefined") ? `
+          <div style="font-style: italic; color: #3d2314; margin: 3px 0; font-weight: 500;">
+            « ${entree.surnom} »
+          </div>
+        ` : ''}
+        
+        <div style="font-size: 0.85rem; color: #555;">
+          <span>👤 <strong>Race :</strong> ${entree.race}</span> | 
+          <span>📍 <strong>Origine :</strong> ${entree.origine}</span>
+        </div>
+        
+        <div style="font-size: 0.85rem; color: #555;">
+          <span>⚔️ <strong>Classe :</strong> ${entree.titre || "Inconnue"}</span> | 
+          <span>🍇 <strong>Fruit :</strong> ${entree.classeFruit || "n'est pas un utilisateur de fruit du démon"}</span>
+        </div>
+        
+        <div style="margin-top: 5px; font-weight: bold; color: #b98a1f;">
+          📜 Prime : ${formaterBerrys(entree.prime)} · <span style="font-size:0.8rem; color:#888;">${entree.date}</span>
+        </div>
       </div>
     `).join("");
   }
@@ -854,14 +888,125 @@ function fermerPantheon() {
   if (menuPrincipal) menuPrincipal.style.display = "flex";
 }
 
-function sauvegarderDansPantheon(titre, prime) {
+function afficherBoutique() {
+  cacherTousLesMenus(); // 👈 Masque la boutique et les autres fenêtres
+
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const boutique = document.getElementById("boutique");
+
+  if (!boutique) {
+    console.error("L'élément HTML #boutique est introuvable !");
+    return;
+  }
+
+  // Met à jour le solde de pièces si la fonction existe
+  if (typeof mettreAJourBoutique === "function") {
+    mettreAJourBoutique();
+  }
+
+  if (menuPrincipal) menuPrincipal.style.display = "none";
+  boutique.style.display = "block"; // Ou "flex" selon ton CSS
+}
+
+function fermerBoutique() {
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const boutique = document.getElementById("boutique");
+
+  if (boutique) boutique.style.display = "none";
+  if (menuPrincipal) menuPrincipal.style.display = "flex";
+}
+
+const pagesGuide = {
+  1: `
+    <h2 class="book-title">🌊 L'Aventure</h2>
+    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
+      <li><strong>Scènes :</strong> Choisis ton destin à chaque étape de l'histoire.</li>
+      <li><strong>Événements :</strong> La mer réserve des surprises (tempêtes, marchands, rencontres).</li>
+      <li><strong>Fin de partie :</strong> Atteins la fin de l'aventure pour calculer ta prime finale !</li>
+    </ul>
+  `,
+  2: `
+    <h2 class="book-title">🪙 Les Pièces</h2>
+    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
+      <li><strong>Comment en gagner ?</strong> En termianant ton histoire tu recevras des pièces en fonction de ta prime.</li>
+      <li><strong>Bazar :</strong> Utilise tes pièces dans la Boutique pour acheter des bonus pour tes prochaines parties.</li>
+    </ul>
+  `,
+  3: `
+    <h2 class="book-title">⚔️ Les Stats</h2>
+    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
+      <li><strong>❤️ Vie :</strong> Ne la laisse pas tomber à zéro !</li>
+      <li><strong>🔋 Endurance :</strong> Ne la laisse pas tomber à zéro !</li>
+      <li><strong>💪 Force :</strong> Détermine ta puissance en combat direct.</li>
+      <li><strong>✨ Charisme :</strong> Ton aura, ce que tu degages.</li>
+      <li><strong>🧠 Intelligence :</strong> Sert à ruser et analyser.</li>
+      <li><strong>🏆Reputation :</strong> Débloque du respect, des alliances... ou des ennemis mortels.</li>
+      <li><strong>⚡Vitesse :</strong> Sert à ruser, esquiver et analyser.</li>
+      <li><strong>💰 Argent :</b> Ton trésor personnel. Sert à acheter de l'équipement, payer les tavernes et négocier sur les marchés.</li>
+      <li><strong>🏴‍☠️ Prime :</b> Ta puissance en chiffre.</li>
+    </ul>
+  `,
+  4: `
+    <h2 class="book-title">🏆 Le Panthéon</h2>
+    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
+      <li>Chaque fin de partie enregistre ton Capitaine.</li>
+      <li>Tente de battre ton record personnel de prime pour figurer tout en haut du Registre des Légendes !</li>
+    </ul>
+  `
+};
+
+function afficherGuide() {
+  cacherTousLesMenus();
+  const menuPrincipal = document.getElementById("menuPrincipal");
+  const guide = document.getElementById("guideJeu");
+
+  if (!guide) return;
+
+  changerPageGuide(1); // Ouvre la page 1 par défaut
+  if (menuPrincipal) menuPrincipal.style.display = "none";
+  guide.style.display = "block";
+}
+
+function changerPageGuide(numPage) {
+  const conteneurPage = document.getElementById("guideContenuPage");
+  if (conteneurPage && pagesGuide[numPage]) {
+    conteneurPage.innerHTML = pagesGuide[numPage];
+  }
+}
+
+function fermerGuide() {
+  const guideJeu = document.getElementById("guideJeu");
+  const menuPrincipal = document.getElementById("menuPrincipal");
+
+  if (guideJeu) guideJeu.style.display = "none";
+  if (menuPrincipal) menuPrincipal.style.display = "flex";
+}
+
+function sauvegarderDansPantheon(titreFin, prime) {
   const historique = JSON.parse(localStorage.getItem("op_pantheon") || "[]");
+
+  // 1. On déclare la variable proprement avec let
+  let surnomFinal = joueur.surnom || joueur.titre || null;
+
+  // 2. Si le surnom est juste une mention par défaut, on l'annule pour ne pas l'afficher
+  if (surnomFinal && (surnomFinal.includes("NE POSSEDE PAS") || surnomFinal.includes("SANS TITRE"))) {
+    surnomFinal = null;
+  }
+
+  // 3. On pousse la sauvegarde
   historique.push({
-    nom: joueur.nom,
-    titre: titre,
-    prime: prime,
+    nom: joueur.nom || "Pirate Anonyme",
+    age: joueur.age || 16,
+    surnom: surnomFinal,                // 🏷️ Utilise la variable déclarée juste au-dessus
+    titre: titreFin || joueur.classe,   // 🏅 Rang de fin (ex: "Pirate débutant")
+    classe: joueur.classe || "Pirate",
+    classeFruit: joueur.classeFruit || null,
+    race: joueur.race || "Humain",
+    origine: joueur.origine || "Grand Line",
+    prime: prime || 0,
     date: new Date().toLocaleDateString("fr-FR")
   });
+
   historique.sort((a, b) => b.prime - a.prime);
   localStorage.setItem("op_pantheon", JSON.stringify(historique.slice(0, 50)));
 }

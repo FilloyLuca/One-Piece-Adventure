@@ -29,8 +29,9 @@
     <nav class="wood-nav">
       <button class="wood-plaque" onclick="afficherPantheon()">🏆 Panthéon</button>
       <button class="wood-plaque">👑 Succès</button>
-      <button class="wood-plaque">📜 Quêtes</button>
-      <button class="wood-plaque">🛒 Boutique</button>
+      <!-- <button class="wood-plaque">📜 Quêtes</button> -->
+      <button class="wood-plaque" onclick="afficherBoutique()">🛒 Boutique</button>
+      <button class="wood-plaque" onclick="afficherGuide()">📕 Guide & Explications</button>
       <!--<button class="wood-plaque">⚙ Paramètres</button>-->
     </nav>
 
@@ -56,6 +57,72 @@
           <button class="parchment-btn" style="margin-top:20px; margin-bottom:25px; width:100%;" onclick="fermerPantheon()">Retour au menu</button>
           <div id="pantheonContenu"></div>
         </div>
+      </section>
+
+      <section id="boutique" class="menu-section" style="display:none;">
+        <button class="parchment-btn" style="margin: 15px auto; display:block;" onclick="fermerBoutique()">Fermer le livre</button>
+        <div class="book-container">
+          
+          <!-- PAGE GAUCHE : Solde & Filtres -->
+          <div class="book-page book-page-left">
+            <h2 class="book-title">🏪 Bazar du Pirate</h2>
+            <div style="text-align:center; margin: 20px 0;">
+              <p style="font-size:1.1rem; color:#7a2318;">Tes Pièces :</p>
+              <span id="boutiquePieces" style="font-size:2rem; font-weight:bold; color:#b98a1f;">🪙 0</span>
+            </div>
+            <p style="font-style:italic; font-size:0.9rem; text-align:center;">
+              « Tout ce qui se trouve ici a été négocié aux quatre coins de Grand Line. »
+            </p>
+          </div>
+
+          <!-- PAGE DROITE : Liste des Objets Achetables -->
+          <div class="book-page book-page-right">
+            <h2 class="book-title">📜 Catalogue</h2>
+            <div id="boutiqueListeObjets">
+              <!-- Généré dynamiquement en JS -->
+              <div class="book-item">
+                <div>
+                  <strong>🗡️ Sabre Meito</strong>
+                  <div style="font-size:0.8rem;">+2 Force permanente</div>
+                </div>
+                <button class="parchment-btn">🪙 50</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <section id="guideJeu" class="menu-section" style="display:none;">
+
+        <button class="parchment-btn" style="margin: 15px auto; display:block;" onclick="fermerGuide()">
+          Fermer le Livre
+        </button>
+
+        <div class="book-container">
+          
+          <!-- PAGE GAUCHE : Sommaire / Navigation -->
+          <div class="book-page book-page-left">
+            <h2 class="book-title">📜 Manuel du Marin</h2>
+            <p style="font-style:italic; font-size:0.9rem; text-align:center; margin-bottom:15px;">
+              « Tout ce qu'un capitaine doit savoir avant de prendre la mer. »
+            </p>
+            
+            <div class="guide-tabs">
+              <button class="parchment-btn" onclick="changerPageGuide(1)">🌊 L'Aventure</button>
+              <button class="parchment-btn" onclick="changerPageGuide(2)">🪙 Les Pièces</button>
+              <button class="parchment-btn" onclick="changerPageGuide(3)">⚔️ Les Stats</button>
+              <button class="parchment-btn" onclick="changerPageGuide(4)">🏆 Le Panthéon</button>
+            </div>
+          </div>
+
+          <!-- PAGE DROITE : Contenu dynamique -->
+          <div class="book-page book-page-right" id="guideContenuPage">
+            <!-- Rempli dynamiquement en JS -->
+          </div>
+
+        </div>
+        
       </section>
 
       <!-- ZONE DU JEU (RANGÉE DANS LA CABINE EN BOIS) -->

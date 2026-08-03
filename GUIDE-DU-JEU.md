@@ -462,4 +462,17 @@ Les deux options ne sont pas mutuellement exclusives sur l'ensemble du jeu — r
 
 ---
 
+## 🧹 Réinitialiser le Panthéon (Remise à zéro)
+
+Si tu souhaites effacer l'historique des légendes et repartir sur un Panthéon tout neuf, tu peux exécuter une commande de nettoyage :
+
+1. Ouvre la console de ton navigateur en appuyant sur `F12` (ou `Ctrl` + `Maj` + `I`).
+2. Clique sur l'onglet **Console**.
+3. Colle la commande suivante et appuie sur `Entrée` :
+
+``javascript
+localStorage.removeItem("op_pantheon");
+
+⚠️ Attention : Cette action est irréversible et supprimera définitivement tous les scores enregistrés.
+
 *Dernière mise à jour de ce guide : à compléter à chaque nouvelle fonctionnalité majeure.*

@@ -9,7 +9,7 @@ Aucune installation requise : le jeu tourne entièrement dans le navigateur, en 
 ## ✨ Fonctionnalités
 
 - **Création de personnage** : sexe, nom (aléatoire ou choisi), race, origine, poste à bord, entourage — chacun influence les statistiques de départ.
-- **Statistiques** : vie, endurance, force, charisme, intelligence, vitesse, réputation, argent, prime.
+- **Statistiques** : vie, endurance (chacune avec une valeur actuelle et un seuil max propre, qui évolue au fil de la partie), force, charisme, intelligence, vitesse, réputation, argent, prime.
 - **Scènes et événements aléatoires** organisés par arcs narratifs, avec des choix aux conséquences visibles.
 - **Système de conditions** : certains choix sont verrouillés, interdits, ou spéciaux selon les stats, compétences, classe, race ou relations du joueur.
 - **Classes** : Pirate, Marine, Révolutionnaire — et une classe secondaire pour les utilisateurs de fruits du démon.
@@ -73,6 +73,10 @@ Toute la logique détaillée (comment ajouter une scène, un événement, une co
 📖 **[GUIDE-DU-JEU.md](./GUIDE-DU-JEU.md)**
 
 Ce guide est le point de référence pour comprendre et étendre le jeu — à consulter avant toute modification du contenu narratif ou des mécaniques.
+
+Pour équilibrer les `effets` (stats, argent, prime, risques...) d'une nouvelle scène ou d'un nouvel événement de façon cohérente avec le reste du jeu, voir aussi :
+
+📈 **[GUIDE-PROGRESSION-RECOMPENSES.md](./GUIDE-PROGRESSION-RECOMPENSES.md)**
 
 ---
 

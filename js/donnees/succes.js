@@ -230,22 +230,102 @@ const SUCCES_CATALOGUE = [
 
   // ---------- Groupe : Statistiques ----------
   {
-    id: "Statistiques_force_50",
+    id: "statistiques_vie_150",
+    groupe: "Statistiques",
+    nom: "Bonne santé",
+    emoji: "❤️",
+    desc: "Termine une partie avec une vie max d'au moins 150.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.vieMax >= 150
+  },
+  {
+    id: "statistiques_endurance_150",
+    groupe: "Statistiques",
+    nom: "Bien vivant",
+    emoji: "🔋",
+    desc: "Termine une partie avec une endurance max d'au moins 150.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.enduranceMax >= 150
+  },
+  {
+    id: "statistiques_force_50",
     groupe: "Statistiques",
     nom: "Gonflette",
     emoji: "💪",
     desc: "Termine une partie avec une force d'au moins 50.",
     recompense: { pieces: 10 },
     condition: (j) => j.stats.vie >= 50
-},
+  },
+  {
+    id: "statistiques_charisme_50",
+    groupe: "Statistiques",
+    nom: "Charmeur(euse)",
+    emoji: "✨",
+    desc: "Termine une partie avec un charisme d'au moins 50.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.charisme >= 50
+  },
+  {
+    id: "statistiques_intelligence_50",
+    groupe: "Statistiques",
+    nom: "Petit(e) futé(e)",
+    emoji: "🧠",
+    desc: "Termine une partie avec une intelligence d'au moins 50.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.intelligence >= 50
+  },
+  {
+    id: "statistiques_vitesse_50",
+    groupe: "Statistiques",
+    nom: "Pile électrique",
+    emoji: "⚡",
+    desc: "Termine une partie avec une vitesse d'au moins 50.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.vitesse >= 50
+  },
+  {
+    id: "statistiques_reputation_50",
+    groupe: "Statistiques",
+    nom: "Célèbrité",
+    emoji: "🏆",
+    desc: "Termine une partie avec une reputation d'au moins 50.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.reputation >= 50
+  },
 
 
 
 
   // ---------- Groupe : Richesse ----------
+  {
+    id: "richesse_1m",
+    groupe: "Richesse",
+    nom: "Millionnaire",
+    emoji: "💰",
+    desc: "Termine une partie avec au moins 1 000 000 ฿.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.argent >= 1000000
+  },
+  {
+    id: "richesse_10m",
+    groupe: "Richesse",
+    nom: "Multi-millionnaire",
+    emoji: "💰",
+    desc: "Termine une partie avec au moins 10_000_000 ฿.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.argent >= 10_000_000
+  },
+  {
+    id: "richesse_1b",
+    groupe: "Richesse",
+    nom: "Milliardaire",
+    emoji: "💰",
+    desc: "Termine une partie avec au moins 1 000 000 000 ฿.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.argent >= 1_000_000_000
+  },
 
 
-  
 
   // ---------- Groupe : Fruits du Démon ----------
   {
@@ -257,7 +337,6 @@ const SUCCES_CATALOGUE = [
     recompense: { pieces: 25 },
     condition: (j) => !!j.classeFruit
   },
-
 
 
   // ---------- Groupe : Objets ----------

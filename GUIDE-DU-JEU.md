@@ -621,6 +621,91 @@ Ajoute une entrée dans `SUCCES_CATALOGUE` (`js/donnees/succes.js`) :
 
 ⚠️ Tous les succès sont vérifiés **uniquement en fin de partie**, dans `terminerPartie()` — pas besoin d'appeler quoi que ce soit ailleurs dans le code narratif (`arcX.js`) pour qu'un succès basé sur les stats/relations/objets du joueur fonctionne, du moment que ces informations sont encore présentes sur `joueur` au moment où la partie se termine.
 
+### Succès basés sur un objet, une compétence ou une relation précise
+
+`objets` et `competences` ne sont pas des catalogues déclarés à l'avance (contrairement à `CLASSES` ou `CLASSES_FRUIT`) : ce sont de simples tableaux de chaînes de texte, remplis au fil des choix via `effets` (voir "🏷️ Effets possibles dans un choix"). Pour qu'un succès se déclenche sur la possession d'un objet ou d'une compétence précise, il suffit donc de vérifier sa présence dans le tableau, avec le **nom exact** utilisé dans la scène qui l'accorde :
+
+```js
+// Le choix qui donne l'objet, quelque part dans arcX.js
+effets: { objets: ["Amulette des Anciens"] }
+
+// Le succès correspondant, dans succes.js
+{
+  id: "possede_amulette",
+  groupe: "Objets",
+  nom: "Collectionneur d'artefacts",
+  emoji: "🏺",
+  desc: "Termine une partie en possédant l'Amulette des Anciens.",
+  recompense: { pieces: 20 },
+  condition: (j) => (j.objets || []).includes("Amulette des Anciens")
+}
+```
+
+Même principe pour une compétence :
+
+```js
+condition: (j) => (j.competences || []).includes("Élasticité")
+```
+
+⚠️ La comparaison est une égalité stricte de texte (`.includes()`) : accents, majuscules/minuscules et espaces doivent correspondre exactement entre la scène qui accorde l'objet/la compétence et la condition du succès. Si le même objet peut être obtenu depuis plusieurs scènes différentes, veille à toujours utiliser rigoureusement la même orthographe.
+
+**Cas particulier des relations** : contrairement à `objets`/`competences`, `joueur.relations` n'est pas un tableau de chaînes mais un tableau d'objets `{ nom, statut, mort? }` (voir "🤝 Statuts de relation et couleurs"). Il faut donc chercher l'entrée correspondante avec `.find()` plutôt que `.includes()`, puis tester son `statut` (ou son champ `mort`) :
+
+```js
+// Le choix qui crée/fait évoluer la relation, quelque part dans arcX.js
+effets: { relations: [{ nom: "Coby", statut: "Nakama" }] }
+
+// Succès basé sur le statut exact d'une relation précise
+{
+  id: "coby_nakama",
+  groupe: "Relations",
+  nom: "Fidèle jusqu'au bout",
+  emoji: "🤝",
+  desc: "Termine une partie avec Coby comme Nakama.",
+  recompense: { pieces: 20 },
+  condition: (j) => {
+    const rel = (j.relations || []).find(r => r.nom === "Coby");
+    return !!rel && rel.statut === "Nakama";
+  }
+}
+
+// Succès basé sur la mort d'un personnage précis (indépendant du statut)
+{
+  id: "coby_perdu",
+  groupe: "Destins",
+  nom: "Un ami de moins",
+  emoji: "☠️",
+  desc: "Termine une partie après la mort de Coby.",
+  recompense: { pieces: 15 },
+  condition: (j) => {
+    const rel = (j.relations || []).find(r => r.nom === "Coby");
+    return !!rel && rel.mort === true;
+  }
+}
+```
+
+⚠️ Même règle d'orthographe stricte que pour `objets`/`competences` : le `nom` du personnage (`"Coby"`) doit être écrit exactement pareil partout où il apparaît dans les choix (`relations: [{ nom: "..." }]`), sans quoi `.find()` ne retrouvera jamais la bonne entrée. Si tu veux un succès qui se déclenche sur **n'importe quelle** relation avec un statut donné (peu importe le nom du personnage), utilise plutôt `.some()` comme le fait déjà `relation_nakama` dans le catalogue actuel : `(j.relations || []).some(r => r.statut.toLowerCase().includes("nakama"))`.
+
+### Succès basés sur une stat numérique (`j.stats`)
+
+Comme pour `objets`/`competences`/`relations`, aucune déclaration préalable n'est nécessaire : `condition` peut directement lire n'importe quelle clé de `j.stats` (voir la liste complète dans "🧍 L'état du joueur").
+
+```js
+{
+  id: "statistiques_vie_150",
+  groupe: "Statistiques",
+  nom: "Bonne santé",
+  emoji: "❤️",
+  desc: "Termine une partie avec une vie max d'au moins 150.",
+  recompense: { pieces: 10 },
+  condition: (j) => j.stats.vieMax >= 150
+}
+```
+
+⚠️ **Piège fréquent** : rien ne vérifie automatiquement que le texte de `desc` correspond réellement à ce que teste `condition` — ce sont deux champs complètement indépendants aux yeux du moteur. Une faute de copier-coller (ex: `desc` qui parle de "force" alors que `condition` teste `j.stats.vie`) ne provoque **aucune erreur** : le succès fonctionnera très bien techniquement, mais affichera une description trompeuse au joueur. Relis toujours `desc` et `condition` côte à côte avant de valider un nouveau succès.
+
+⚠️ Autre piège : `vie`/`endurance` (valeur actuelle) et `vieMax`/`enduranceMax` (seuil max) sont deux clés distinctes (voir "❤️🔋 Vie / Endurance : valeur actuelle vs seuil max") — un succès voulant récompenser un seuil max durablement élevé doit bien cibler `vieMax`/`enduranceMax`, pas `vie`/`endurance`, sous peine de dépendre de l'état ponctuel du joueur à l'instant précis de `terminerPartie()` plutôt que de sa progression réelle.
+
 ### Groupes et affichage
 
 L'onglet Succès (`afficherSucces()` dans `moteur-scenes.js`) regroupe automatiquement les entrées de `SUCCES_CATALOGUE` par leur champ `groupe`, dans l'ordre où elles apparaissent dans le fichier — pas besoin de déclarer les groupes à part. Les groupes actuels : **Rangs**, **Titres**, **Richesse**, **Aventure**, **Fruits du Démon**, **Relations**, **Destins** — libre à toi d'en ajouter d'autres en donnant simplement une nouvelle valeur à `groupe`.
@@ -917,4 +1002,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout de la pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour" automatiques quand une page est trop longue). Précédemment : ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse` sur un choix, en fin d'arc ou en plein milieu), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout des sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`). Précédemment : pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

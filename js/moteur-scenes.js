@@ -25,6 +25,22 @@ function mettreAJourBarreProgressionArc() {
   fill.classList.remove("complet");
 }
 
+// ---------- SYSTÈME DE CHANCE (choix à issue probabiliste) ----------
+// Convertit un écart stat/difficulté en probabilité de réussite (0 à 1).
+// pente : plus elle est petite, plus la stat du joueur influence fortement le résultat
+//         (une pente basse = très prévisible ; une pente haute = presque 50/50 quoi qu'il arrive)
+function calculerChanceReussite(statJoueur, difficulte, pente = 3) {
+  const proba = 1 / (1 + Math.exp(-(statJoueur - difficulte) / pente));
+  // On clamp pour ne jamais avoir 0% ou 100% garanti (toujours un peu de suspense)
+  return Math.min(0.92, Math.max(0.08, proba));
+}
+
+// Fonction à utiliser directement dans `issue` d'un choix
+function tirageProbabiliste(statJoueur, difficulte, pente = 3) {
+  const chance = calculerChanceReussite(statJoueur, difficulte, pente);
+  return Math.random() < chance;
+}
+
 // ---------- 3. RENDU D'UNE SCÈNE ----------
 function choixEstDisponible(choix) {
   if (choix.requis) {

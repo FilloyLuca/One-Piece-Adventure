@@ -241,6 +241,69 @@ interdit: {
 
 Le joueur voit toujours le choix (pas grisé), mais ne sait pas à l'avance s'il va réussir — seul le résultat (`succes` ou `echec`) est déterminé au clic.
 
+⚠️ Ce système avec `>=` est un **seuil dur** : à stats égales, le résultat est toujours identique d'une partie à l'autre. Pratique pour des conditions simples, mais sans tension — un joueur qui atteint le seuil réussit à 100% des essais. Pour un vrai hasard pondéré par les stats, voir la section suivante.
+
+### Choix à issue probabiliste (`tirageProbabiliste`)
+
+Pour introduire du **hasard pondéré par les stats** — plus la stat du joueur est haute par rapport à la difficulté, plus la chance de réussite augmente, sans jamais atteindre 0% ou 100% — deux fonctions sont disponibles dans `moteur-scenes.js` (déclarées avant la section "RENDU D'UNE SCÈNE") :
+
+```js
+// Convertit un écart stat/difficulté en probabilité de réussite (0 à 1)
+function calculerChanceReussite(statJoueur, difficulte, pente = 3) {
+  const proba = 1 / (1 + Math.exp(-(statJoueur - difficulte) / pente));
+  return Math.min(0.92, Math.max(0.08, proba)); // jamais 0% ni 100% garanti
+}
+
+// Fonction à utiliser directement dans `issue` d'un choix
+function tirageProbabiliste(statJoueur, difficulte, pente = 3) {
+  const chance = calculerChanceReussite(statJoueur, difficulte, pente);
+  return Math.random() < chance;
+}
+```
+
+**Paramètres :**
+- `difficulte` : le seuil "pivot" — la stat à partir de laquelle le joueur a environ 50% de chances de réussir.
+- `pente` : contrôle à quel point l'écart de stat influence le résultat.
+  - **Pente basse (2-3)** → très prévisible : un perso costaud gagne presque toujours, un perso faible perd presque toujours. À réserver aux combats physiques tranchés.
+  - **Pente haute (5-6)** → presque 50/50 quoi qu'il arrive : la chance/le destin joue un vrai rôle (tempête, pari, bluff). Même un perso costaud peut se planter.
+
+Exemple de conversion avec `difficulte = 8`, `pente = 3` :
+
+| Stat du joueur | Chance de réussite approx. |
+|---|---|
+| 5 | ~13% |
+| 8 (seuil pivot) | 50% |
+| 12 | ~90% |
+
+**Utilisation dans un choix :**
+
+```js
+{
+  texte: "Défier ton rival en duel",
+  issue: (j) => tirageProbabiliste(j.stats.force, 8, 3),
+  succes: {
+    resultat: "Tu prends le dessus dans un combat acharné.",
+    effets: { force: 2, reputation: 3 },
+    suivant: "EVENEMENT"
+  },
+  echec: {
+    resultat: "Ton rival te bat, mais tu as tenu tête.",
+    effets: { force: 1, vie: -15 },
+    suivant: "EVENEMENT"
+  }
+}
+```
+
+**Combiner plusieurs stats :** pondère leur importance respective avant de les passer au tirage (les coefficients doivent s'additionner à 1) :
+
+```js
+issue: (j) => tirageProbabiliste((j.stats.force * 0.7 + j.stats.vitesse * 0.3), 8, 3)
+```
+
+Ici, la force compte pour 70% du résultat et la vitesse pour 30% — un personnage rapide mais peu puissant garde une vraie chance, sans que ce soit sa qualité dominante.
+
+⚠️ Rien ne change côté affichage ni côté moteur : `issue` est déjà appelé silencieusement dans `choisirDansScene()` / `choisirDansEvenement()`, qu'il s'agisse d'un seuil dur ou d'un tirage probabiliste. Le joueur voit le choix normalement (pas grisé, aucune condition affichée), clique, et découvre le résultat — la surprise est préservée dans les deux cas.
+
 ---
 
 ## 🏷️ Effets possibles dans un choix
@@ -664,4 +727,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout du compteur de succès débloqués/total dans l'onglet Succès, distinction succès décoratifs vs récompensés (`recompense` optionnel), système de déblocage d'objets Boutique via succès (`deblocage.succes`), et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout du système de hasard pondéré pour les choix à issue (`tirageProbabiliste`, avec pente ajustable et combinaison de plusieurs stats), en complément du seuil dur d'origine. Précédemment : compteur de succès débloqués/total dans l'onglet Succès, distinction succès décoratifs vs récompensés (`recompense` optionnel), système de déblocage d'objets Boutique via succès (`deblocage.succes`), et commandes de réinitialisation détaillées par clé `localStorage`.*

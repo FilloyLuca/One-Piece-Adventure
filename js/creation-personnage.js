@@ -115,7 +115,7 @@ const ENTOURAGES = {
     nom: "Orphelin",
     emoji: "🕊️",
     desc: "On t'a recueilli dans la rue.",
-    bonus: { vie: 0, endurance: 4, force: 0, reputation: 1, charisme: 0, intelligence: 0, vitesse: 1, argent: 0, prime:0 }
+    bonus: { vie: 0, endurance: 3, force: 0, reputation: 1, charisme: 0, intelligence: 0, vitesse: 2, argent: 0, prime:0 }
   },
   orphelin: {
     nom: "Paysan",
@@ -174,7 +174,7 @@ let joueur = {
   origine: null,
   poste: null,
   entourage: null,
-  stats: { vie: 100, endurance: 100, force: 0, charisme: 0, intelligence: 0, vitesse: 0, reputation: 0, argent: 1000, prime:0 },
+  stats: { vie: 100, vieMax: 100, endurance: 100, enduranceMax: 100, force: 0, charisme: 0, intelligence: 0, vitesse: 0, reputation: 0, argent: 1000, prime:0 },
   objets: [],
   competences: [],   
   relations: [],  
@@ -319,6 +319,12 @@ function choisir(categorie, id) {
   joueur[categorie] = id;
   for (const stat in item.bonus) {
     joueur.stats[stat] += item.bonus[stat];
+    // Les bonus de vie/endurance à la création reflètent la constitution du personnage :
+    // ils augmentent aussi bien le seuil max que la valeur actuelle (pas besoin de modifier
+    // les objets RACES/ORIGINES/POSTES/ENTOURAGES existants pour ça).
+    if (stat === "vie" || stat === "endurance") {
+      joueur.stats[stat + "Max"] += item.bonus[stat];
+    }
   }
 
   etapeActuelle++;
@@ -348,7 +354,7 @@ function afficherRecap() {
         
         <p><strong>Statistiques :</strong></p>
         <p style="font-size: 0.9rem;">
-          ❤️ Vie: ${joueur.stats.vie} | 🔋 Endurance: ${joueur.stats.endurance} | 💪 Force: ${joueur.stats.force}<br>
+          ❤️ Vie: ${joueur.stats.vie}/${joueur.stats.vieMax} | 🔋 Endurance: ${joueur.stats.endurance}/${joueur.stats.enduranceMax} | 💪 Force: ${joueur.stats.force}<br>
           ✨ Charisme: ${joueur.stats.charisme} | 🧠 Intelligence: ${joueur.stats.intelligence} | ⚡ Vitesse: ${joueur.stats.vitesse}<br>
           🏆 Réputation: ${joueur.stats.reputation} | 💰 Argent: ${typeof formaterBerrys === "function" ? formaterBerrys(joueur.stats.argent) : joueur.stats.argent + " Berrys"}
         </p>

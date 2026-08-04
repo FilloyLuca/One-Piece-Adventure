@@ -90,7 +90,7 @@ function etatChoix(choix) {
 }
 
 function raisonIndisponibilite(choix) {
-  const labels = { vie: "❤️ Vie", endurance: "🔋 Endurance", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (choix.requis) {
     if (choix.requis.stats) {
@@ -124,7 +124,7 @@ function raisonIndisponibilite(choix) {
 }
 
 function raisonInterdiction(choix) {
-  const labels = { vie: "❤️ Vie", endurance: "🔋 Endurance", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (choix.interdit.stats) {
     for (const stat in choix.interdit.stats) {
@@ -157,7 +157,7 @@ function raisonInterdiction(choix) {
 
 function texteConditionHTML(choix) {
   const etat = etatChoix(choix);
-  const labels = { vie: "❤️ Vie", endurance: "🔋 Endurance", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (etat === "interdit") {
     return `<span class="choix-condition-interdit">🚫 ${raisonInterdiction(choix)}</span>`;
@@ -283,8 +283,12 @@ function avancerAge(nombreAnnees = 1) {
 const POINTS_ENTRAINEMENT_PAR_ARC = 3;
 
 const STATS_ENTRAINABLES = [
-  { cle: "vie",       nom: "Vie",        emoji: "❤️" },
-  { cle: "endurance",       nom: "Endurance",        emoji: "🔋" },
+  // On entraîne le SEUIL MAX (vieMax/enduranceMax) plutôt que la valeur actuelle :
+  // un point investi ici augmente durablement la capacité du joueur (et le soigne
+  // d'autant au passage), au lieu d'un simple soin ponctuel qui serait souvent
+  // gâché si le joueur est déjà à son plafond au moment de la répartition.
+  { cle: "vieMax",       nom: "Vie max",        emoji: "❤️" },
+  { cle: "enduranceMax",       nom: "Endurance max",        emoji: "🔋" },
   { cle: "force",       nom: "Force",        emoji: "💪" },
   { cle: "charisme",    nom: "Charisme",     emoji: "✨" },
   { cle: "intelligence",nom: "Intelligence", emoji: "🧠" },
@@ -508,10 +512,32 @@ function appliquerEffets(effets) {
             joueur.relations.push({ ...r });
           }
       });
+    } else if (cle === "vieMax" || cle === "enduranceMax") {
+      // Modifie le SEUIL MAXIMUM (ex: blessure permanente qui réduit la vie max,
+      // entraînement qui l'augmente...). Un gain de seuil relève aussi la valeur
+      // actuelle d'autant (comme un vrai regain de vitalité) ; une perte de seuil
+      // ne fait que brider la valeur actuelle si elle dépassait le nouveau plafond.
+      const cleActuelle = cle === "vieMax" ? "vie" : "endurance";
+      const delta = effets[cle];
+
+      joueur.stats[cle] = (joueur.stats[cle] || 0) + delta;
+      if (joueur.stats[cle] < 1) joueur.stats[cle] = 1; // jamais de seuil max nul ou négatif
+
+      if (delta > 0) {
+        joueur.stats[cleActuelle] = (joueur.stats[cleActuelle] || 0) + delta;
+      } else if (joueur.stats[cleActuelle] > joueur.stats[cle]) {
+        joueur.stats[cleActuelle] = joueur.stats[cle];
+      }
+    } else if (cle === "vie" || cle === "endurance") {
+      // Modifie la valeur ACTUELLE uniquement (dégâts, soins ponctuels...), plafonnée
+      // par le seuil max courant du joueur (et non plus 100 en dur).
+      const max = joueur.stats[cle + "Max"];
+      joueur.stats[cle] = (joueur.stats[cle] || 0) + effets[cle];
+      if (typeof max === "number" && joueur.stats[cle] > max) {
+        joueur.stats[cle] = max;
+      }
     } else if (joueur.stats && cle in joueur.stats) {
         joueur.stats[cle] = (joueur.stats[cle] || 0) + effets[cle];
-        if (joueur.stats.vie > 100) joueur.stats.vie = 100;
-        if (joueur.stats.endurance > 100) joueur.stats.endurance = 100;
     }
   }
   mettreAJourFiche();
@@ -562,7 +588,7 @@ function mettreAJourFiche() {
       <div>
         <strong style="font-size:1.1rem; color:#4a150e;">🏴‍☠️ ${joueur.nom || "Pirate"}</strong> ${raceHTML} ${classeHTML} ${classeFruitHTML} ${titreHTML}
         <div style="font-size:0.85rem; margin-top:3px;">
-          ❤️ ${joueur.stats.vie} · 🔋 ${joueur.stats.endurance} · 💪 ${joueur.stats.force} · ✨ ${joueur.stats.charisme} · 🧠 ${joueur.stats.intelligence} · ⚡ ${joueur.stats.vitesse} · 🏆 ${joueur.stats.reputation} · 💰 ${formaterBerrys(joueur.stats.argent)} · 📜 ${formaterBerrys(joueur.stats.prime)}
+          ❤️ ${joueur.stats.vie}/${joueur.stats.vieMax} · 🔋 ${joueur.stats.endurance}/${joueur.stats.enduranceMax} · 💪 ${joueur.stats.force} · ✨ ${joueur.stats.charisme} · 🧠 ${joueur.stats.intelligence} · ⚡ ${joueur.stats.vitesse} · 🏆 ${joueur.stats.reputation} · 💰 ${formaterBerrys(joueur.stats.argent)} · 📜 ${formaterBerrys(joueur.stats.prime)}
         </div>
       </div>
       <div style="text-align:right; font-family:'Pirata One', cursive; font-size:1.3rem; color:#4a150e;">
@@ -624,7 +650,7 @@ function afficherDetailsPersonnage() {
     
     <div class="log-entry">
         <span class="log-day">Statistiques</span><br>
-        ❤️ Vie: ${joueur.stats.vie} | 🔋 Endurance: ${joueur.stats.endurance} |<br>
+        ❤️ Vie: ${joueur.stats.vie}/${joueur.stats.vieMax} | 🔋 Endurance: ${joueur.stats.endurance}/${joueur.stats.enduranceMax} |<br>
         💪 Force: ${joueur.stats.force} | ✨ Charisme: ${joueur.stats.charisme} | 🧠 Intelligence: ${joueur.stats.intelligence} |<br>
         ⚡ Vitesse: ${joueur.stats.vitesse} | 🏆 Réputation: ${joueur.stats.reputation} | 💰 Argent: ${formaterBerrys(joueur.stats.argent)}
     </div>
@@ -1000,6 +1026,10 @@ function formaterEffetsPills(effets) {
   if (!effets || Object.keys(effets).length === 0) return "";
 
   const labels = {
+    vie: "❤️ Vie",
+    vieMax: "❤️ Vie max",
+    endurance: "🔋 Endurance",
+    enduranceMax: "🔋 Endurance max",
     force: "Force",
     reputation: "Réputation",
     charisme: "Charisme",

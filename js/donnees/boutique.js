@@ -46,7 +46,7 @@ const BOUTIQUE_CATALOGUE = [
     emoji: "🧭",
     desc: "Un compas usé mais fiable, qui a déjà traversé bien des tempêtes. (+1 Objet, +10 Endurance)",
     prix: 120,
-    effets: { objets: ["Vieux Log Pose"], endurance: 10 }
+    effets: { objets: ["Vieux Log Pose"], enduranceMax: 10 }
   },
   {
     id: "bottes_agiles",

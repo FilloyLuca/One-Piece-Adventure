@@ -71,7 +71,9 @@ let joueur = {
   entourage: null,
   stats: {
     vie: 100,
+    vieMax: 100,           // seuil maximum de vie (voir section "Vie/Endurance : actuel vs max")
     endurance: 100,
+    enduranceMax: 100,     // seuil maximum d'endurance
     force: 5,
     charisme: 5,
     intelligence: 5,
@@ -101,6 +103,70 @@ let joueur = {
    - `afficherRecap()` (écran récapitulatif de création, dans `creation-personnage.js`)
 3. Ajoute-la dans l'objet `labels` utilisé par les fonctions de conditions (`formaterEffetsPills`, `texteConditionHTML`, `raisonIndisponibilite`, `raisonInterdiction`) dans `moteur-scenes.js` — cherche `const labels = {` (plusieurs occurrences).
 4. Ajoute un bonus `0` (ou une valeur) pour cette stat dans **toutes** les entrées de `RACES`, `ORIGINES`, `POSTES`, `ENTOURAGES` (dans `creation-personnage.js`), pour éviter les incohérences.
+
+---
+
+## ❤️🔋 Vie / Endurance : valeur actuelle vs seuil max
+
+Contrairement aux autres stats (force, charisme...), `vie` et `endurance` fonctionnent avec **deux valeurs séparées**, affichées partout au format `actuel/max` (ex: `❤️ 80/100`) :
+
+| Clé dans `joueur.stats` | Rôle |
+|---|---|
+| `vie` / `endurance` | Valeur **actuelle** — ce qu'il reste au joueur, monte et descend au fil des choix |
+| `vieMax` / `enduranceMax` | Le **seuil maximum** — la capacité du personnage, en principe plus stable |
+
+### Deux familles d'effets, deux usages différents
+
+Un choix peut modifier l'une ou l'autre de ces valeurs via `effets`, selon ce que tu veux raconter :
+
+```js
+// ❤️ Effet PONCTUEL : dégâts, soin, fatigue passagère...
+// Modifie uniquement la valeur ACTUELLE, plafonnée par le seuil max courant du joueur
+// (donc "vie: +30" ne fait jamais dépasser vieMax, même si vieMax a changé entre-temps).
+effets: { vie: -25 }        // le joueur encaisse 25 dégâts
+effets: { endurance: -15 }  // fatigue passagère
+effets: { vie: 20 }         // soin classique (auberge, médecin...)
+
+// 💪 Effet PERMANENT : blessure durable, entraînement, capacité qui grandit...
+// Modifie le SEUIL MAX. Une AUGMENTATION relève aussi la valeur actuelle d'autant
+// (le joueur est soigné en même temps qu'il gagne en capacité). Une DIMINUTION ne fait
+// que brider la valeur actuelle si elle dépassait le nouveau plafond (elle ne descend
+// jamais artificiellement en dessous si le joueur était déjà en dessous du nouveau max).
+effets: { vieMax: 10 }           // le personnage devient durablement plus robuste (+10 vie max, +10 vie actuelle)
+effets: { enduranceMax: -20 }    // une blessure grave réduit durablement l'endurance max du personnage
+```
+
+Le seuil max ne peut jamais descendre en dessous de `1` (protection contre un seuil nul ou négatif).
+
+### Exemple concret
+
+```js
+{
+  texte: "Se faire briser le bras par le colosse",
+  resultat: "Le craquement résonne. Ton bras ne sera peut-être plus jamais aussi fort qu'avant.",
+  effets: { vie: -40, enduranceMax: -15 }, // dégâts immédiats + séquelle durable
+  suivant: "EVENEMENT"
+}
+```
+
+```js
+{
+  texte: "S'entraîner sans relâche pendant des mois",
+  resultat: "Ton corps tout entier s'est endurci.",
+  effets: { vieMax: 15 }, // capacité de vie durablement augmentée (et soigné d'autant)
+  suivant: "EVENEMENT"
+}
+```
+
+### Points d'entraînement de fin d'arc
+
+Dans `STATS_ENTRAINABLES` (`moteur-scenes.js`), les entrées vie/endurance ciblent volontairement `vieMax`/`enduranceMax` plutôt que `vie`/`endurance` : un point investi en fin d'arc représente une progression **durable** du personnage. Cibler la valeur actuelle serait souvent inutile, puisque le joueur est généralement déjà proche de son plafond au moment de la répartition — le gain serait immédiatement écrêté.
+
+### ⚠️ Points d'attention
+
+- Un objet de la Boutique qui offre un bonus de vie/endurance "de départ" (`appliquerEquipementDepart()`, appelé quand le joueur a déjà toute sa vie/endurance) doit cibler `vieMax`/`enduranceMax` et non `vie`/`endurance`, sinon le bonus est immédiatement plafonné et donc perdu. C'est le cas de l'objet `log_pose` (`js/donnees/boutique.js`), qui utilise `enduranceMax: 10`.
+- Les bonus `vie`/`endurance` des objets `RACES`, `ORIGINES`, `POSTES`, `ENTOURAGES` (création de personnage) restent inchangés dans leur écriture — `choisir()` (`creation-personnage.js`) les applique automatiquement à la fois sur la valeur actuelle **et** sur le seuil max, puisqu'ils représentent la constitution innée du personnage. Pas besoin de dupliquer `vie`/`endurance` en `vieMax`/`enduranceMax` dans ces objets de données.
+- `etatCritiqueAtteint()` (fins prématurées) continue de comparer les valeurs **actuelles** (`vie <= 0`, `endurance <= -50`) — le seuil max n'entre pas en jeu dans cette vérification.
 
 ---
 
@@ -312,7 +378,8 @@ Ici, la force compte pour 70% du résultat et la vitesse pour 30% — un personn
 effets: {
   // Stats numériques (n'importe laquelle de joueur.stats)
   force: 1,
-  vie: -10,
+  vie: -10,              // valeur ACTUELLE seulement — voir "Vie / Endurance : valeur actuelle vs seuil max"
+  vieMax: 5,              // seuil MAX — voir la même section
   argent: 500000,
   prime: 1000000,
 
@@ -326,6 +393,8 @@ effets: {
   relations: [{ nom: "Luffy", statut: "Allié" }]
 }
 ```
+
+⚠️ `vie`/`endurance` et `vieMax`/`enduranceMax` ne se comportent **pas** comme les autres stats numériques (simple addition) : voir la section [❤️🔋 Vie / Endurance : valeur actuelle vs seuil max](#-vie--endurance--valeur-actuelle-vs-seuil-max) plus haut pour le détail du plafonnage et de la répercussion sur la valeur actuelle.
 
 Un choix peut aussi définir, **en dehors** de `effets` :
 

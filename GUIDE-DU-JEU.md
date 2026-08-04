@@ -663,6 +663,30 @@ Le récapitulatif de fin de partie (`terminerPartie()`) affiche la liste des suc
 
 ⚠️ Les récompenses `objets` / `competences` directement sur un succès ne sont **pas** gérées (et volontairement pas prévues) : donner un objet à la fin de partie n'aurait aucun effet, puisque `joueur` est réinitialisé à la partie suivante. Pour donner accès à un objet de façon permanente via un succès, passe par le **déblocage d'objets boutique** ci-dessous.
 
+### ➕ Ajouter un objet à la Boutique
+
+Le catalogue de la Boutique vit dans `js/donnees/boutique.js`, sous `BOUTIQUE_CATALOGUE` (un tableau) — toute la logique (achat, équipement, application au lancement d'une partie) reste dans `moteur-scenes.js`, tu n'as **rien à toucher côté moteur** pour ajouter un simple objet.
+
+```js
+{
+  id: "identifiant_unique",          // doit être unique dans tout le catalogue
+  nom: "Nom affiché de l'objet",
+  emoji: "⚔️",
+  desc: "Description courte, qui explique aussi l'effet entre parenthèses. (+3 Force)",
+  prix: 100,                          // coût en pièces de boutique (op_pieces_boutique)
+  effets: { objets: ["Nom affiché de l'objet"], force: 3 }   // appliqués via appliquerEffets()
+}
+```
+
+Points importants :
+
+- **`prix`** : en pièces de boutique, gagnées en fin de partie (voir `calculerPiecesGagnees()`) — indépendant de l'argent (`argent`) ou de la prime (`prime`) du personnage en jeu.
+- **`effets`** : suit exactement les mêmes règles que les `effets` d'un choix de scène (voir "🏷️ Effets possibles dans un choix" plus haut) — stats numériques, `objets`, `competences`, etc. Ils ne sont appliqués qu'**au tout début d'une nouvelle partie** (`lancerAventure()` → `appliquerEquipementDepart()`), et seulement si le joueur a équipé l'objet.
+- **Cas de `vie`/`endurance`** : comme le personnage démarre déjà avec sa vie/endurance actuelle au maximum, un effet `vie: 10` ou `endurance: 10` sur un objet de départ serait immédiatement plafonné et donc perdu (voir "❤️🔋 Vie / Endurance : valeur actuelle vs seuil max"). Pour un objet qui doit rendre le personnage durablement plus résistant dès le départ, utilise `vieMax`/`enduranceMax` à la place — c'est ce que fait l'objet `log_pose` du catalogue actuel (`effets: { objets: [...], enduranceMax: 10 }`).
+- **`objets`** dans `effets` (tableau) sert à faire apparaître un badge 🎒 dans la fiche du personnage une fois la partie lancée — c'est une bonne pratique d'y répéter le nom de l'objet, même s'il n'a aucun effet mécanique.
+- Pas besoin de gérer `MAX_EQUIPEMENT_BOUTIQUE` toi-même : c'est une constante globale (actuellement `3`) qui limite le nombre d'objets équipés simultanément, tous objets confondus — elle s'applique automatiquement au nouvel objet.
+- Un objet peut aussi être verrouillé derrière un succès dès sa création, en lui ajoutant directement le champ `deblocage` décrit juste en dessous — pas besoin d'attendre pour l'ajouter après coup.
+
 ### Débloquer un objet de la Boutique via un succès
 
 Un objet de `BOUTIQUE_CATALOGUE` (`js/donnees/boutique.js`) peut être **verrouillé tant qu'un succès donné n'a pas été obtenu au moins une fois**, en ajoutant un champ `deblocage` :
@@ -684,6 +708,48 @@ Tant que le succès `titre_legende` n'a jamais été obtenu (`chargerSucces()["t
 `acheterObjetBoutique()` revérifie aussi ce verrouillage côté logique (pas seulement à l'affichage), donc un objet verrouillé ne peut pas être acheté même en modifiant le DOM.
 
 Un objet de la boutique sans champ `deblocage` reste, comme avant, disponible dès que le joueur a assez de pièces — ce système est entièrement optionnel, à ajouter seulement sur les objets que tu veux réserver.
+
+---
+
+## 📖 Pagination interne d'une page du Guide (sous-pages)
+
+Certaines pages du guide (`js/donnees/guide.js`, objet `pagesGuide`) peuvent devenir trop longues pour tenir proprement dans le livre (ex: "⚔️ Les Stats"). Plutôt que de laisser le contenu déborder, une page peut être **découpée en plusieurs sous-pages**, avec des boutons "Suite →" / "← Retour" affichés automatiquement en bas du contenu dès qu'il y a plus d'une sous-page.
+
+### Comment ça marche
+
+Une constante `GUIDE_SEPARATEUR` (déclarée en haut de `guide.js`) sert de marqueur de coupure :
+
+```js
+const GUIDE_SEPARATEUR = "<!--SUITE-->";
+```
+
+Pour découper une page, insère simplement `${GUIDE_SEPARATEUR}` à l'endroit voulu dans son texte :
+
+```js
+3: `
+  <h2 class="book-title">⚔️ Les Stats</h2>
+  <ul>...</ul>
+  ${GUIDE_SEPARATEUR}
+  <h2 class="book-title">⚔️ Les Stats (suite)</h2>
+  <ul>...</ul>
+`
+```
+
+Tu peux insérer `GUIDE_SEPARATEUR` plusieurs fois dans une même page si elle doit être coupée en 3 morceaux ou plus — rien à changer côté logique.
+
+### Logique (moteur-scenes.js)
+
+- `changerPageGuide(numPage)` : appelée depuis les boutons du sommaire, change de page principale et revient toujours à la première sous-page (`guideSousPage = 0`).
+- `afficherSousPageGuide()` : découpe le contenu de la page courante via `.split(GUIDE_SEPARATEUR)`, affiche la sous-page en cours, et ajoute automatiquement la navigation ("← Retour" / compteur `X / Y` / "Suite →") **seulement si** la page contient plus d'une sous-page. Une page non découpée s'affiche donc exactement comme avant, sans aucun bouton superflu.
+- `pageGuideSuivante()` / `pageGuidePrecedente()` : incrémentent/décrémentent `guideSousPage` puis rappellent `afficherSousPageGuide()`.
+
+### Ajouter une nouvelle page découpée
+
+1. Écris le contenu complet de la page dans `pagesGuide`, comme avant.
+2. Repère où couper, et insère `${GUIDE_SEPARATEUR}` à cet endroit.
+3. Rien d'autre à faire — la navigation est générée automatiquement selon le nombre de sous-pages détectées.
+
+⚠️ Si tu ajoutes une propriété `guideSousPage` ou `guidePageActuelle` ailleurs dans le code par erreur (variables globales déclarées en haut de `moteur-scenes.js`, juste avant `afficherGuide()`), assure-toi de ne pas les redéclarer pour éviter d'écraser l'état de navigation en cours.
 
 ---
 
@@ -851,4 +917,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout de l'ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse` sur un choix, en fin d'arc ou en plein milieu) et du nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`). Précédemment : système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout de la pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour" automatiques quand une page est trop longue). Précédemment : ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse` sur un choix, en fin d'arc ou en plein milieu), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

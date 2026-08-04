@@ -1407,6 +1407,9 @@ function fermerBoutique() {
 
 // Le contenu des pages du guide (pagesGuide) est défini dans js/donnees/guide.js
 
+let guidePageActuelle = 1;
+let guideSousPage = 0;
+
 function afficherGuide() {
   cacherTousLesMenus();
   const menuPrincipal = document.getElementById("menuPrincipal");
@@ -1419,11 +1422,51 @@ function afficherGuide() {
   guide.style.display = "block";
 }
 
+// Change de page principale (sommaire) et revient toujours à la première sous-page
 function changerPageGuide(numPage) {
+  if (!pagesGuide[numPage]) return;
+  guidePageActuelle = numPage;
+  guideSousPage = 0;
+  afficherSousPageGuide();
+}
+
+// Affiche la sous-page courante de la page en cours, avec navigation "Suite / Retour"
+// si la page a été découpée en plusieurs morceaux via GUIDE_SEPARATEUR (guide.js)
+function afficherSousPageGuide() {
   const conteneurPage = document.getElementById("guideContenuPage");
-  if (conteneurPage && pagesGuide[numPage]) {
-    conteneurPage.innerHTML = pagesGuide[numPage];
+  if (!conteneurPage) return;
+
+  const contenuComplet = pagesGuide[guidePageActuelle];
+  if (!contenuComplet) return;
+
+  const sousPages = contenuComplet.split(GUIDE_SEPARATEUR);
+  const total = sousPages.length;
+  const contenuActuel = sousPages[guideSousPage] || "";
+
+  let navHTML = "";
+  if (total > 1) {
+    navHTML = `<div style="display:flex; justify-content:space-between; align-items:center; margin-top:20px; gap:10px;">`;
+    navHTML += guideSousPage > 0
+      ? `<button class="parchment-btn" style="margin-top:0;" onclick="pageGuidePrecedente()">← Retour</button>`
+      : `<span></span>`;
+    navHTML += `<span style="font-size:0.8rem; opacity:0.7;">${guideSousPage + 1} / ${total}</span>`;
+    navHTML += guideSousPage < total - 1
+      ? `<button class="parchment-btn" style="margin-top:0;" onclick="pageGuideSuivante()">Suite →</button>`
+      : `<span></span>`;
+    navHTML += `</div>`;
   }
+
+  conteneurPage.innerHTML = contenuActuel + navHTML;
+}
+
+function pageGuideSuivante() {
+  guideSousPage++;
+  afficherSousPageGuide();
+}
+
+function pageGuidePrecedente() {
+  guideSousPage--;
+  afficherSousPageGuide();
 }
 
 function fermerGuide() {

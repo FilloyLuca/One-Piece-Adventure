@@ -63,7 +63,7 @@ const BOUTIQUE_CATALOGUE = [
     desc: "Une cape légendaire, réservée à ceux qui ont prouvé leur valeur. (+5 Charisme, +5 Réputation)",
     prix: 250,
     effets: { objets: ["Cape du Roi des Pirates"], charisme: 5, reputation: 5 },
-    deblocage: { succes: "titre_legende" }   // 👈 caché/verrouillé tant que ce succès n'est pas obtenu
+    deblocage: { succes: "legende_pirate" }   // 👈 caché/verrouillé tant que ce succès n'est pas obtenu
   }
 ];
 

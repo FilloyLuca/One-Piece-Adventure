@@ -58,11 +58,9 @@ const SUCCES_CATALOGUE = [
     recompense: { pieces: 15 },
     condition: (j) => j.classe === "chasseurDePrimes"
   },
-
-  // ---------- Groupe : Titres ----------
-  {
+   {
     id: "titre_legende",
-    groupe: "Titres",
+    groupe: "Rangs",
     nom: "Légende des mers",
     emoji: "👑",
     desc: "Termine une partie avec le rang de légende.",
@@ -87,13 +85,61 @@ const SUCCES_CATALOGUE = [
     recompense: { pieces: 20 },
     condition: (j, c) => c.tierTitre === "moyen"
   },
+   {
+    id: "titre_bas",
+    groupe: "Rangs",
+    nom: "Inconnu",
+    emoji: "🦯",
+    desc: "Termine une partie avec un rang bas.",
+    recompense: { pieces: 10 },
+    condition: (j, c) => c.tierTitre === "bas"
+  },
+
+  // ---------- Groupe : Titres ----------
+ 
+  {
+    id: "legende_pirate",
+    groupe: "Titres",
+    nom: "Pirate légendaire",
+    emoji: "🏴‍☠️👑",
+    desc: "Termine une partie en tant que Pirate avec le rang de légende.",
+    recompense: { pieces: 150 },
+    condition: (j, c) => j.classe === "pirate" && c.tierTitre === "legende"
+  },
+  {
+    id: "legende_marine",
+    groupe: "Titres",
+    nom: "Marine légendaire",
+    emoji: "⚓👑",
+    desc: "Termine une partie en tant que Marine avec le rang de légende.",
+    recompense: { pieces: 150 },
+    condition: (j, c) => j.classe === "marine" && c.tierTitre === "legende"
+  },
+  {
+    id: "legende_revolutionnaire",
+    groupe: "Titres",
+    nom: "Révolutionnaire légendaire",
+    emoji: "🔥👑",
+    desc: "Termine une partie en tant que Révolutionnaire avec le rang de légende.",
+    recompense: { pieces: 150 },
+    condition: (j, c) => j.classe === "revolutionnaire" && c.tierTitre === "legende"
+  },
+   {
+    id: "legende_chasseurDePrimes",
+    groupe: "Titres",
+    nom: "Chasseur de primes légendaire",
+    emoji: "🎯👑",
+    desc: "Termine une partie en tant que Chasseur de primes avec le rang de légende.",
+    recompense: { pieces: 150 },
+    condition: (j, c) => j.classe === "chasseurDePrimes" && c.tierTitre === "legende"
+  },
   {
     id: "titre_debutant",
     groupe: "Titres",
     nom: "Premiers pas",
     emoji: "🌱",
     desc: "Termine une première aventure, même modeste.",
-    recompense: { pieces: 5 },
+    recompense: { pieces: 1 },
     condition: () => true // toujours vrai en fin de partie
   },
   {
@@ -106,42 +152,51 @@ const SUCCES_CATALOGUE = [
     condition: (j) => !!j.titre
   },
 
-  // ---------- Groupe : Richesse ----------
+  // ---------- Groupe : Wanted ----------
   {
-    id: "richesse_10m",
-    groupe: "Richesse",
-    nom: "Petite fortune",
+    id: "wanted_10m",
+    groupe: "Wanted",
+    nom: "Petite star",
     emoji: "🪙",
     desc: "Termine une partie avec une prime d'au moins 10 000 000 ฿.",
     recompense: { pieces: 10 },
     condition: (j, c) => c.prime >= 10_000_000
   },
   {
-    id: "richesse_100m",
-    groupe: "Richesse",
-    nom: "Grande fortune",
+    id: "wanted_100m",
+    groupe: "Wanted",
+    nom: "Supernova",
     emoji: "💰",
     desc: "Termine une partie avec une prime d'au moins 100 000 000 ฿.",
     recompense: { pieces: 30 },
     condition: (j, c) => c.prime >= 100_000_000
   },
   {
-    id: "richesse_300m",
-    groupe: "Richesse",
-    nom: "Fortune légendaire",
+    id: "wanted_300m",
+    groupe: "Wanted",
+    nom: "Etoile montante",
     emoji: "💎",
     desc: "Termine une partie avec une prime d'au moins 300 000 000 ฿.",
     recompense: { pieces: 60 },
     condition: (j, c) => c.prime >= 300_000_000
   },
   {
-    id: "richesse_500m",
-    groupe: "Richesse",
-    nom: "Parmi les plus recherchés",
+    id: "wanted_500m",
+    groupe: "Wanted",
+    nom: "Star des mers",
     emoji: "🏆",
     desc: "Termine une partie avec une prime d'au moins 500 000 000 ฿.",
     recompense: { pieces: 100 },
     condition: (j, c) => c.prime >= 500_000_000
+  },
+  {
+    id: "wanted_1md",
+    groupe: "Wanted",
+    nom: "La cour des grands",
+    emoji: "🦣",
+    desc: "Termine une partie avec une prime d'au moins 1 000 000 000 ฿.",
+    recompense: { pieces: 150 },
+    condition: (j, c) => c.prime >= 1_000_000_000
   },
 
   // ---------- Groupe : Aventure ----------
@@ -173,6 +228,25 @@ const SUCCES_CATALOGUE = [
     condition: (j) => j.stats.vie > 0 && j.stats.vie <= 10
   },
 
+  // ---------- Groupe : Statistiques ----------
+  {
+    id: "Statistiques_force_50",
+    groupe: "Statistiques",
+    nom: "Gonflette",
+    emoji: "💪",
+    desc: "Termine une partie avec une force d'au moins 50.",
+    recompense: { pieces: 10 },
+    condition: (j) => j.stats.vie >= 50
+},
+
+
+
+
+  // ---------- Groupe : Richesse ----------
+
+
+  
+
   // ---------- Groupe : Fruits du Démon ----------
   {
     id: "fruit_demon",
@@ -183,6 +257,10 @@ const SUCCES_CATALOGUE = [
     recompense: { pieces: 25 },
     condition: (j) => !!j.classeFruit
   },
+
+
+
+  // ---------- Groupe : Objets ----------
 
   // ---------- Groupe : Relations ----------
   
@@ -232,6 +310,8 @@ const SUCCES_CATALOGUE = [
     recompense: { pieces: 20 },
     condition: (j) => (j.relations || []).some(r => r.mort)
   },
+
+  // ---------- Groupe : Competences ----------
 
   // ---------- Groupe : Destins ----------
   {

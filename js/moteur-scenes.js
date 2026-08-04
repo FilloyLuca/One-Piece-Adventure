@@ -1,3 +1,30 @@
+// ---------- BARRE DE PROGRESSION D'ARC ----------
+// Pas besoin de connaître le nombre exact d'événements de l'arc :
+// la barre progresse selon une courbe qui ralentit en se rapprochant de 100%,
+// sans jamais l'atteindre avant la vraie fin d'arc (finArc).
+// VITESSE_PROGRESSION_ARC contrôle juste le rythme (plus petit = barre qui se remplit plus vite).
+// Avec une vitesse de 1.8 :
+// 5 événements donneront environ 73% de progression
+const VITESSE_PROGRESSION_ARC = 1.8;
+
+function mettreAJourBarreProgressionArc() {
+  const fill = document.getElementById("arcProgressFill");
+  const boat = document.getElementById("arcProgressBoat");
+  if (!fill || !boat) return;
+
+  const totalEv = joueur.journalArc ? joueur.journalArc.length : 0;
+  // Si nous sommes au tout premier événement de l'arc, l'avancement est de 0
+  const avancement = Math.max(0, totalEv - 1);
+
+  // Courbe asymptotique basée sur les événements suivants
+  const ratio = 1 - 1 / (1 + avancement / VITESSE_PROGRESSION_ARC);
+  const pourcentage = ratio * 100;
+
+  fill.style.width = `${pourcentage}%`;
+  boat.style.left = `${pourcentage}%`;
+  fill.classList.remove("complet");
+}
+
 // ---------- 3. RENDU D'UNE SCÈNE ----------
 function choixEstDisponible(choix) {
   if (choix.requis) {
@@ -156,6 +183,7 @@ function demarrerScene(id) {
   if (!scene) return;
   // dans demarrerScene(), juste après `if (!scene) return;`
     joueur.journalArc.push(scene.titre);
+    mettreAJourBarreProgressionArc();
 
   const texte = typeof scene.texte === "function" ? scene.texte() : scene.texte;
 
@@ -218,7 +246,16 @@ function avancerAge() {
     age: joueur.age,
     evenements: [...joueur.journalArc]
   });
+
+    const fillFinal = document.getElementById("arcProgressFill");
+    const boatFinal = document.getElementById("arcProgressBoat");
+    if (fillFinal && boatFinal) {
+      fillFinal.style.width = "100%";
+      boatFinal.style.left = "100%";
+      fillFinal.classList.add("complet");
+    }
   joueur.journalArc = []; // repart à zéro pour le prochain arc
+  mettreAJourBarreProgressionArc();
 
   mettreAJourFiche();
   if (joueur.age >= 40) {
@@ -508,6 +545,7 @@ function afficherEvenement(evenement) {
   if (!evenement) return;
   // dans afficherEvenement(), juste après `if (!evenement) return;`
     joueur.journalArc.push(`⚡ ${evenement.titre}`);
+    mettreAJourBarreProgressionArc();
 
   const texte = typeof evenement.texte === "function" ? evenement.texte() : evenement.texte;
 

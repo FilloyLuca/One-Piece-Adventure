@@ -169,7 +169,7 @@ let joueur = {
   age:16,
   classe: null,
   classeFruit: null,
-  titre: null, // épithète/surnom, ex: "Le Cinquième Empereur"
+  titre: null, 
   race: null,
   origine: null,
   poste: null,
@@ -178,8 +178,8 @@ let joueur = {
   objets: [],
   competences: [],   
   relations: [],  
-  journalArc: [],   // événements/scènes du chapitre en cours
-  historique: [],    // résumé de chaque arc terminé
+  journalArc: [],   
+  historique: [],    
 };
 
 let etapeActuelle = 0;
@@ -210,70 +210,86 @@ function afficherEtape() {
   const contenu = document.getElementById("contenuJeu");
   if (!contenu) return;
 
-  contenu.innerHTML = "";
+  // On vide le titre global s'il existe pour éviter les doublons
+  if (titre) titre.textContent = "";
 
+  // 1. ÉTAPE SEXE
   if (etape === "sexe") {
-    if (titre) titre.textContent = "Homme ou femme ?";
     contenu.innerHTML = `
       <div class="scene-card">
-        <span class="scene-tag tag-creation">Création du personnage</span>
+        <span class="scene-tag tag-creation">CRÉATION DU PERSONNAGE</span>
         <h2 class="scene-titre">Quel est ton sexe ?</h2>
-        <p class="scene-texte">Avant de prendre la mer, le monde doit savoir qui tu es.</p>
+        <p class="scene-texte">AVANT DE PRENDRE LA MER, LE MONDE DOIT SAVOIR QUI TU ES.</p>
         <div class="scene-choix">
-          <button class="parchment-strip" onclick="choisirSexe('homme')">♂ Un homme</button>
-          <button class="parchment-strip" onclick="choisirSexe('femme')">♀ Une femme</button>
+          <button class="parchment-strip" onclick="choisirSexe('homme')">♂ UN HOMME</button>
+          <button class="parchment-strip" onclick="choisirSexe('femme')">♀ UNE FEMME</button>
         </div>
       </div>`;
   }
 
- if (etape === "nom") {
-    if (titre) titre.textContent = "Qui es-tu ?";
+  // 2. ÉTAPE NOM
+  if (etape === "nom") {
     contenu.innerHTML = `
-      <div class="parchment-scroll main-scroll" style="display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; width: 100%;">
-        
-        <h2 style="font-family:'Pirata One', cursive; font-size: 2rem; color: #4a150e; margin-bottom: 10px;">
-          Ton Nom
-        </h2>
-        
-        <div class="scroll-content" style="display: flex; flex-direction: column; align-items: center; width: 100%;">
-          <p>Avant de prendre la mer, le monde doit connaître ton nom.</p>
-          
+      <div class="scene-card">
+        <span class="scene-tag tag-creation">CRÉATION DU PERSONNAGE</span>
+        <h2 class="scene-titre">Quel est ton nom ?</h2>
+        <p class="scene-texte">AVANT DE PRENDRE LA MER, LE MONDE DOIT CONNAÎTRE TON NOM.</p>
+        <div class="scene-choix" style="display: flex; flex-direction: column; align-items: center; gap: 12px; width: 100%;">
           <input type="text" id="inputNom" placeholder="Nom de ton personnage"
-            style="margin-top:15px; padding:8px; font-family:'Cinzel',serif; width:80%; text-align:center;">
+            style="padding: 12px; font-family: inherit; width: 80%; text-align: center; border-radius: 6px; border: 1px solid #7a2318; font-size: 1rem; background: rgba(255,255,255,0.7);">
           
-          <button class="parchment-btn" type="button" onclick="tirerNomAleatoire()" style="margin-top:12px;">
+          <button class="parchment-strip" type="button" onclick="tirerNomAleatoire()">
             🎲 Nom aléatoire
           </button>
           
-          <button class="parchment-btn" onclick="validerNom()" style="margin-top:10px;">
-            Continuer
+          <button class="parchment-strip" onclick="validerNom()">
+            Continuer →
           </button>
         </div>
       </div>`;
   }
 
-  if (etape === "race") afficherChoixEtape("Qu'es-tu ?", RACES, "race");
-  if (etape === "origine") afficherChoixEtape("D'où viens-tu ?", ORIGINES, "origine");
-  if (etape === "poste") afficherChoixEtape("Quel est ton rôle sur un navire ?", POSTES, "poste");
-  if (etape === "entourage") afficherChoixEtape("Qui t'a façonné ?", ENTOURAGES, "entourage");
-  if (etape === "recap") afficherRecap();
+  // 3. ÉTAPES RACES, ORIGINES, POSTES, ENTOURAGES
+  if (etape === "race") {
+    afficherChoixEtape("Qu'es-tu ?", "CHOISIS LA RACE QUI DÉFINIRA TES CAPACITÉS NATURELLES.", RACES, "race");
+  }
+  if (etape === "origine") {
+    afficherChoixEtape("D'où viens-tu ?", "CHAQUE MER FORGE LES MARINS D'UNE FAÇON DIFFÉRENTE.", ORIGINES, "origine");
+  }
+  if (etape === "poste") {
+    afficherChoixEtape("Quel est ton rôle ?", "CHOISIS TA SPÉCIALITÉ À BORD DE TON FUTUR NAVIRE.", POSTES, "poste");
+  }
+  if (etape === "entourage") {
+    afficherChoixEtape("Qui t'a façonné ?", "TON PASSÉ A FORGÉ LA PERSONNE QUE TU ES AUJOURD'HUI.", ENTOURAGES, "entourage");
+  }
+  if (etape === "recap") {
+    afficherRecap();
+  }
 }
 
-function afficherChoixEtape(question, dictionnaire, cle) {
-  const titre = document.getElementById("titreScene");
-  if (titre) titre.textContent = question;
-
+function afficherChoixEtape(question, sousTitre, dictionnaire, cle) {
   const contenu = document.getElementById("contenuJeu");
-  let html = `<div class="choices-container">`;
+  
+  let html = `
+    <div class="scene-card">
+      <span class="scene-tag tag-creation">CRÉATION DU PERSONNAGE</span>
+      <h2 class="scene-titre">${question.toUpperCase()}</h2>
+      <p class="scene-texte">${sousTitre.toUpperCase()}</p>
+      <div class="scene-choix">`;
+      
   for (const id in dictionnaire) {
     const item = dictionnaire[id];
     html += `
-      <div class="parchment-strip" onclick="choisir('${cle}', '${id}')">
-        <strong>${item.emoji} ${item.nom}</strong><br>
-        <small>${item.desc}</small>
-      </div>`;
+      <button class="parchment-strip" onclick="choisir('${cle}', '${id}')" style="display: flex; flex-direction: column; text-align: left; padding: 10px 15px;">
+        <span style="font-weight: bold; font-size: 1.1rem; text-transform: uppercase;">${item.emoji} ${item.nom}</span>
+        <span style="font-size: 0.85rem; opacity: 0.9; margin-top: 3px; font-weight: normal; text-transform: uppercase;">${item.desc}</span>
+      </button>`;
   }
-  html += `</div>`;
+  
+  html += `
+      </div>
+    </div>`;
+  
   contenu.innerHTML = html;
 }
 
@@ -316,35 +332,40 @@ function afficherRecap() {
   const e = ENTOURAGES[joueur.entourage];
 
   document.getElementById("contenuJeu").innerHTML = `
-    <div class="wanted-poster">
-      <div class="logbook-title">📜 Fiche du personnage</div>
-      <div class="log-entry"><span class="log-day">Nom</span> ${joueur.nom}</div>
-      <div class="log-entry"><span class="log-day">Race</span> ${r.emoji} ${r.nom}</div>
-      <div class="log-entry"><span class="log-day">Origine</span> ${o.emoji} ${o.nom}</div>
-      <div class="log-entry"><span class="log-day">Rôle</span> ${p.emoji} ${p.nom}</div>
-      <div class="log-entry"><span class="log-day">Entourage</span> ${e.emoji} ${e.nom}</div>
-      <div class="log-entry"><span class="log-day">Statistiques de départ</span><br>
-        ❤️ Vie: ${joueur.stats.vie} &nbsp;|&nbsp;
-        🔋 Endurance: ${joueur.stats.endurance} &nbsp;|&nbsp;<br>
-        💪 Force: ${joueur.stats.force} &nbsp;|&nbsp;
-        ✨ Charisme: ${joueur.stats.charisme} &nbsp;|&nbsp;
-        🧠 Intelligence: ${joueur.stats.intelligence} &nbsp;|&nbsp;<br>
-        ⚡ Vitesse: ${joueur.stats.vitesse} &nbsp;|&nbsp;
-        🏆 Réputation: ${joueur.stats.reputation} &nbsp;|&nbsp;
-        💰 Argent: ${formaterBerrys(joueur.stats.argent)}
+    <div class="scene-card">
+      <span class="scene-tag tag-creation">Création du personnage</span>
+      <h2 class="scene-titre">📜 Fiche de ${joueur.nom}</h2>
+      <p class="scene-texte">Voici les caractéristiques finales de ton personnage avant le grand départ.</p>
+      
+      <div style="text-align: left; margin: 20px 0; font-size: 0.95rem; line-height: 1.6;">
+        <p><strong>Genre :</strong> ${joueur.sexe === 'homme' ? '♂ Homme' : '♀ Femme'}</p>
+        <p><strong>Race :</strong> ${r.emoji} ${r.nom}</p>
+        <p><strong>Origine :</strong> ${o.emoji} ${o.nom}</p>
+        <p><strong>Rôle :</strong> ${p.emoji} ${p.nom}</p>
+        <p><strong>Entourage :</strong> ${e.emoji} ${e.nom}</p>
+        
+        <hr style="border: 0; border-top: 1px dashed #bbb; margin: 15px 0;">
+        
+        <p><strong>Statistiques :</strong></p>
+        <p style="font-size: 0.9rem;">
+          ❤️ Vie: ${joueur.stats.vie} | 🔋 Endurance: ${joueur.stats.endurance} | 💪 Force: ${joueur.stats.force}<br>
+          ✨ Charisme: ${joueur.stats.charisme} | 🧠 Intelligence: ${joueur.stats.intelligence} | ⚡ Vitesse: ${joueur.stats.vitesse}<br>
+          🏆 Réputation: ${joueur.stats.reputation} | 💰 Argent: ${typeof formaterBerrys === "function" ? formaterBerrys(joueur.stats.argent) : joueur.stats.argent + " Berrys"}
+        </p>
       </div>
-    </div>
-    <button class="parchment-btn" style="margin-top:20px; width:100%;" onclick="lancerAventure()">
-      ⛵ Prendre la mer
-    </button>`;
+
+      <div class="scene-choix">
+        <button class="parchment-strip" onclick="lancerAventure()">
+          ⛵ Prendre la mer
+        </button>
+      </div>
+    </div>`;
 }
 
 function lancerAventure() {
-  // S'assurer que le conteneur principal du jeu est bien affiché
   const jeuContainer = document.getElementById("jeu");
   if (jeuContainer) jeuContainer.style.display = "block";
 
-  // Lancer la toute première scène définie dans moteur.js
   if (typeof demarrerScene === "function") {
     demarrerScene("arc1_reveil");
   } else {
@@ -352,22 +373,7 @@ function lancerAventure() {
   }
 }
 
-// ---------- 4. BRANCHEMENT SUR LE BOUTON EXISTANT ----------
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("startGame");
-  if (btn) btn.addEventListener("click", demarrerCreationPersonnage);
-});
-
-document.addEventListener("DOMContentLoaded", () => {
-  const btn = document.getElementById("startGame");
-  if (btn) btn.addEventListener("click", demarrerCreationPersonnage);
-
-  const btnContinuer = document.getElementById("continuerGame");
-  if (btnContinuer && localStorage.getItem("op_sauvegarde")) {
-    btnContinuer.style.display = "inline-block";
-  }
-});
+// ---------- 4. BRANCHEMENTS BOUTONS ----------
 
 document.addEventListener("DOMContentLoaded", () => {
   const btn = document.getElementById("startGame");
@@ -379,7 +385,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   const piecesAffichage = document.getElementById("piecesAffichage");
-  if (piecesAffichage) {
+  if (piecesAffichage && typeof chargerPiecesBoutique === "function") {
     piecesAffichage.textContent = `🪙 ${chargerPiecesBoutique()} pièces`;
   }
 });

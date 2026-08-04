@@ -131,17 +131,24 @@
       <!-- ZONE DU JEU (RANGÉE DANS LA CABINE EN BOIS) -->
        
         <section id="jeu" style="display:none;">
-        <div id="ficheWrapper" class="fiche-permanente-wrapper">
-            <div class="fiche-permanente-inner">
-                <button id="btnRetourMenu" class="parchment-btn" onclick=" retourMenuPrincipal()">
-                    🏠 Retour au menu
-                </button>
-                <div id="ficheJoueur" class="fiche-permanente"></div>
-            </div>
-        </div>
+          <div id="ficheWrapper" class="fiche-permanente-wrapper">
+              <div class="fiche-permanente-inner">
+                  <button id="btnRetourMenu" class="parchment-btn" onclick=" retourMenuPrincipal()">
+                      🏠 Retour au menu
+                  </button>
+                  <div id="ficheJoueur" class="fiche-permanente"></div>
 
-        <h2 id="titreScene" class="game-title" style="font-size: 1.8rem; margin: 15px 0;"></h2>
-        <div id="contenuJeu"></div>
+                  <div class="arc-progress-wrapper">
+                    <div class="arc-progress-track">
+                      <div class="arc-progress-fill" id="arcProgressFill"></div>
+                      <div class="arc-progress-boat" id="arcProgressBoat">⛵</div>
+                    </div>
+                  </div>
+              </div>
+          </div>
+
+          <h2 id="titreScene" class="game-title" style="font-size: 1.8rem; margin: 15px 0;"></h2>
+          <div id="contenuJeu"></div>
         </section>
 
     </main>

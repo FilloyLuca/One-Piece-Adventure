@@ -981,3 +981,69 @@ body {
 .book-item-verrouille strong {
   color: #5c4333;
 }
+
+/* ================================
+   ⛵ BARRE DE PROGRESSION D'ARC
+================================ */
+
+.arc-progress-wrapper {
+  margin-top: 14px;
+}
+
+.arc-progress-track {
+  position: relative;
+  width: 100%;
+  height: 14px;
+  border-radius: 20px;
+  border: 1px solid #5c4333;
+  overflow: visible;
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  /* état gris par défaut */
+  background: repeating-linear-gradient(
+    135deg,
+    #8d99ae 0px, #8d99ae 6px,
+    #a3adc2 6px, #a3adc2 12px
+  );
+}
+
+.arc-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 0%;
+  border-radius: 20px 0 0 20px;
+  background-color: #1875f9;
+  background-image: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.28) 0px, rgba(255, 255, 255, 0.28) 8px,
+    transparent 8px, transparent 16px
+  );
+  background-size: 32px 32px;
+  animation: arcProgressVagues 1.8s linear infinite;
+  transition: width 0.5s ease;
+}
+
+.arc-progress-fill.complet {
+  border-radius: 20px;
+}
+
+@keyframes arcProgressVagues {
+  0%   { background-position: 0 0; }
+  100% { background-position: 32px 0; }
+}
+
+.arc-progress-fill.complet {
+  border-radius: 20px; /* arrondi complet une fois l'arc terminé */
+}
+
+.arc-progress-boat {
+  position: absolute;
+  top: 50%;
+  left: 0%;
+  transform: translate(-50%, -65%);
+  font-size: 1.15rem;
+  transition: left 0.5s ease;
+  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
+  pointer-events: none;
+}

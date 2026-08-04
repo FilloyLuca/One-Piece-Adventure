@@ -327,15 +327,34 @@ Affiché automatiquement en italique façon épithète (`« Le Cinquième Empere
 
 Gérés par `couleurStatutRelation()` dans `moteur-scenes.js`. Détection par mot-clé (insensible à la casse) :
 
-| Mot-clé détecté | Couleur |
-|---|---|
-| "nakama" | doré |
-| "allié" / "ami" | vert |
-| "rival" | orange/ambre |
-| "ennemi" | rouge |
-| *(autre)* | brun neutre |
+| Mot-clé détecté | Couleur | Sens |
+|---|---|---|
+| "nakama" | doré | Membre à part entière de l'équipage/du cercle proche |
+| "maître" / "maitre" | bleu | Figure d'autorité, mentor, supérieur hiérarchique |
+| "allié" / "ami" | vert | Relation positive, sans lien aussi fort que Nakama |
+| "rival" | orange/ambre | Ni ami ni ennemi, une tension compétitive |
+| "ennemi" | rouge | Relation hostile |
+| *(autre)* | brun neutre | Statut personnalisé non reconnu par les mots-clés ci-dessus |
 
 Pour ajouter un nouveau statut, ajoute une ligne `if (s.includes("motcle")) return "#couleur";` **avant** les vérifications génériques, dans `couleurStatutRelation()`.
+
+### ☠️ Marquer une relation comme décédée
+
+La mort d'un personnage lié au joueur **n'est pas un statut** (elle ne remplace ni n'écrase Rival/Allié/Nakama/etc.) : c'est un champ booléen séparé, `mort: true`, affiché **à côté** du statut existant plutôt qu'à sa place. Ainsi un Rival qui meurt reste affiché comme "Rival ☠️", un Allié comme "Allié ☠️", etc. — l'historique de la relation est conservé.
+
+```js
+// Exemple : faire mourir un personnage lié au joueur, dans les effets d'un choix
+// (le statut existant, ex: "Allié", est conservé — seul le marqueur ☠️ s'ajoute)
+effets: {
+  relations: [{ nom: "Coby", mort: true }]
+}
+```
+
+`appliquerEffets()` fusionne les champs fournis sur l'entrée existante (`Object.assign(existante, r)`) plutôt que d'écraser uniquement `statut` — ce qui permet de passer `mort: true` seul, sans redéfinir le statut. Si la relation n'existe pas encore, une nouvelle entrée est créée avec les champs fournis (typiquement `nom` + `statut` + `mort`, si tu veux introduire et tuer un personnage dans le même choix).
+
+Le marqueur `☠️` est affiché automatiquement partout où les relations apparaissent : la fiche du haut (`mettreAJourFiche()`), la modale WANTED (`afficherDetailsPersonnage()`), et la pastille d'effet après un choix (`formaterEffetsPills()`).
+
+Un succès dédié existe dans `succes.js` (`relation_perte`, groupe "Relations") qui se déclenche si au moins une relation a `mort: true` en fin de partie.
 
 ---
 

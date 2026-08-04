@@ -15,7 +15,7 @@ Aucune installation requise : le jeu tourne entièrement dans le navigateur, en 
 - **Classes** : Pirate, Marine, Révolutionnaire — et une classe secondaire pour les utilisateurs de fruits du démon.
 - **Titre / surnom (épithète)** : un surnom narratif (ex. *« Le Cinquième Empereur »*) peut être accordé au fil de l'histoire, affiché sous le nom du personnage.
 - **Prime** : évolue comme une statistique à part entière au fil des choix, distincte de l'argent courant du joueur.
-- **Relations** avec d'autres personnages, avec des statuts colorés (Allié, Nakama, Rival, Ennemi...).
+- **Relations** avec d'autres personnages, avec des statuts colorés (Allié, Nakama, Maître, Rival, Ennemi...). La mort d'un personnage lié se marque séparément (`mort: true`, affiché ☠️ à côté du statut existant) plutôt que de l'écraser — le lien qu'on avait avec lui reste visible même après sa disparition.
 - **Objets et compétences** acquis au fil de l'aventure.
 - **Vieillissement** : le personnage avance en âge à chaque fin d'arc, jusqu'à une fin automatique à 40 ans.
 - **Fiche de personnage permanente** + affiche "WANTED" détaillée, consultables à tout moment.

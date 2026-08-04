@@ -185,6 +185,17 @@ const SUCCES_CATALOGUE = [
   },
 
   // ---------- Groupe : Relations ----------
+  
+    {
+        id: "relation_maitre",
+        groupe: "Relations",
+        nom: "Eleve discipliné(e)",
+        emoji: "👨‍🏫",
+        desc: "Termine une partie avec au moins un maitre.",
+        recompense: { pieces: 20 },
+        condition: (j) => (j.relations || []).some(r => r.statut.toLowerCase().includes("nakama"))
+    },
+
   {
     id: "relation_nakama",
     groupe: "Relations",
@@ -211,6 +222,15 @@ const SUCCES_CATALOGUE = [
     desc: "Termine une partie avec au moins un Ennemi.",
     recompense: { pieces: 15 },
     condition: (j) => (j.relations || []).some(r => r.statut.toLowerCase().includes("ennemi"))
+  },
+  {
+    id: "relation_perte",
+    groupe: "Relations",
+    nom: "Deuil en mer",
+    emoji: "☠️",
+    desc: "Termine une partie après avoir perdu un proche.",
+    recompense: { pieces: 20 },
+    condition: (j) => (j.relations || []).some(r => r.mort)
   },
 
   // ---------- Groupe : Destins ----------

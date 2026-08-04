@@ -253,7 +253,7 @@ function avancerAge() {
   // Mettre à jour l'affichage de la fiche (âge +3 points)
   mettreAJourFiche();
 
-  if (joueur.age >= 40) {
+  if (joueur.age >= 50) {
     finRetraite();
     return true;
   }
@@ -364,8 +364,9 @@ function validerAllocationPoints() {
 }
 
 function couleurStatutRelation(statut) {
-  const s = statut.toLowerCase();
+  const s = (statut || "").toLowerCase();
   if (s.includes("nakama")) return "#b98a1f";                    // doré
+  if (s.includes("maître") || s.includes("maitre")) return "#2c5f8a"; // bleu — autorité / mentor
   if (s.includes("allié") || s.includes("ami")) return "#1c7a5e"; // vert
   if (s.includes("rival")) return "#c9770f";                      // orange/ambre — neutre, ni ami ni ennemi
   if (s.includes("ennemi")) return "#a13a2b";                     // rouge
@@ -463,11 +464,14 @@ function appliquerEffets(effets) {
         if (!joueur.objets.includes(o)) joueur.objets.push(o);
       });
     } else if (cle === "relations") {
-      if (!joueur.relations) joueur.relations = [];
-      effets.relations.forEach(r => {
-        const existante = joueur.relations.find(x => x.nom === r.nom);
-        if (existante) existante.statut = r.statut;
-        else joueur.relations.push(r);
+        if (!joueur.relations) joueur.relations = [];
+        effets.relations.forEach(r => {
+          const existante = joueur.relations.find(x => x.nom === r.nom);
+          if (existante) {
+            Object.assign(existante, r); // fusionne statut et/ou mort sans écraser le reste
+          } else {
+            joueur.relations.push({ ...r });
+          }
       });
     } else if (joueur.stats && cle in joueur.stats) {
         joueur.stats[cle] = (joueur.stats[cle] || 0) + effets[cle];
@@ -494,7 +498,8 @@ function mettreAJourFiche() {
   const relationsHTML = (joueur.relations && joueur.relations.length)
     ? joueur.relations.map(r => {
         const couleur = couleurStatutRelation(r.statut);
-        return `<span class="badge-relation" style="color:${couleur}; border-color:${couleur}; background:${couleur}1a;">🤝 ${r.nom}</span>`;
+        const marqueurMort = r.mort ? " ☠️" : "";
+        return `<span class="badge-relation" style="color:${couleur}; border-color:${couleur}; background:${couleur}1a;">🤝 ${r.nom}${marqueurMort}</span>`;
       }).join(" ")
     : "";
 
@@ -568,7 +573,8 @@ function afficherDetailsPersonnage() {
     const relationsHTML = (joueur.relations && joueur.relations.length)
         ? joueur.relations.map(r => {
             const couleur = couleurStatutRelation(r.statut);
-            return `<span style="display:inline-block;"><span style="color:#2c1d11; font-weight:bold;">${r.nom}</span> : <span style="color:${couleur};">${r.statut}</span></span>`;
+            const marqueurMort = r.mort ? ' <span style="color:#4a4a4a; font-weight:bold;">☠️ Décédé</span>' : "";
+            return `<span style="display:inline-block;"><span style="color:#2c1d11; font-weight:bold;">${r.nom}</span> : <span style="color:${couleur};">${r.statut || "—"}</span>${marqueurMort}</span>`;
             }).join("")
         : `<p style="padding:5px 0;">Aucune relation notable.</p>`;
 
@@ -972,7 +978,11 @@ function formaterEffetsPills(effets) {
     if (cle === "competences") {
       effets.competences.forEach(c => pills.push(`<span class="effet-pill effet-competence">🧠 ${c}</span>`));
     } else if (cle === "relations") {
-      effets.relations.forEach(r => pills.push(`<span class="effet-pill effet-relation">🤝 ${r.nom} : ${r.statut}</span>`));
+      effets.relations.forEach(r => {
+        const marqueurMort = r.mort ? " ☠️" : "";
+        const statutAffiche = r.statut ? `${r.statut}${marqueurMort}` : "☠️ Décédé";
+        pills.push(`<span class="effet-pill effet-relation">🤝 ${r.nom} : ${statutAffiche}</span>`);
+      });
     } else if (labels[cle]) {
       const valeur = effets[cle];
       const signe = valeur >= 0 ? "+" : "-";

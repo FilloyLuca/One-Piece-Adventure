@@ -247,22 +247,120 @@ function avancerAge() {
     evenements: [...joueur.journalArc]
   });
 
-    const fillFinal = document.getElementById("arcProgressFill");
-    const boatFinal = document.getElementById("arcProgressBoat");
-    if (fillFinal && boatFinal) {
-      fillFinal.style.width = "100%";
-      boatFinal.style.left = "100%";
-      fillFinal.classList.add("complet");
-    }
-  joueur.journalArc = []; // repart à zéro pour le prochain arc
-  mettreAJourBarreProgressionArc();
+  // Vider le journal d'arc pour le nouvel arc
+  joueur.journalArc = [];
 
+  // Mettre à jour l'affichage de la fiche (âge +3 points)
   mettreAJourFiche();
+
   if (joueur.age >= 40) {
     finRetraite();
     return true;
   }
   return false;
+}
+
+// ---------- POINTS D'ENTRAÎNEMENT (fin d'arc) ----------
+const POINTS_ENTRAINEMENT_PAR_ARC = 3;
+
+const STATS_ENTRAINABLES = [
+  { cle: "vie",       nom: "Vie",        emoji: "❤️" },
+  { cle: "endurance",       nom: "Endurance",        emoji: "🔋" },
+  { cle: "force",       nom: "Force",        emoji: "💪" },
+  { cle: "charisme",    nom: "Charisme",     emoji: "✨" },
+  { cle: "intelligence",nom: "Intelligence", emoji: "🧠" },
+  { cle: "vitesse",     nom: "Vitesse",      emoji: "⚡" },
+  { cle: "reputation",  nom: "Réputation",   emoji: "🏆" }
+];
+
+let allocationEnCours = null; // { pointsRestants, repartition: {cle: n}, suivant }
+
+function demarrerAllocationPoints(suivant) {
+  allocationEnCours = {
+    pointsRestants: POINTS_ENTRAINEMENT_PAR_ARC,
+    repartition: {},
+    suivant
+  };
+  STATS_ENTRAINABLES.forEach(s => allocationEnCours.repartition[s.cle] = 0);
+  afficherAllocationPoints();
+}
+
+function afficherAllocationPoints() {
+  const a = allocationEnCours;
+  if (!a) return;
+
+  let html = `
+    <div class="scene-card">
+      <span class="scene-tag tag-creation">FIN D'ARC</span>
+      <h2 class="scene-titre">🎯 ${a.pointsRestants} point(s) d'entraînement à placer</h2>
+      <p class="scene-texte">Répartis-les comme tu veux. Tant que tu n'as pas validé, le « − » reprend ce que tu viens de poser.</p>
+      <div class="allocation-liste">`;
+
+  STATS_ENTRAINABLES.forEach(s => {
+    const ajoute = a.repartition[s.cle];
+    const valeurActuelle = joueur.stats[s.cle] + ajoute;
+    html += `
+      <div class="allocation-ligne">
+        <span class="allocation-nom">${s.emoji} ${s.nom}</span>
+        <span class="allocation-valeur">${valeurActuelle}</span>
+        ${ajoute > 0 ? `<span class="allocation-ajout">+${ajoute}</span>` : `<span class="allocation-ajout allocation-ajout-vide">1 pt</span>`}
+        <button class="allocation-btn" onclick="retirerPointAllocation('${s.cle}')" ${ajoute <= 0 ? "disabled" : ""}>−</button>
+        <button class="allocation-btn allocation-btn-plus" onclick="ajouterPointAllocation('${s.cle}')" ${a.pointsRestants <= 0 ? "disabled" : ""}>+</button>
+      </div>`;
+  });
+
+  html += `</div>
+      <button class="parchment-btn" style="margin-top:20px; width:100%;" ${a.pointsRestants > 0 ? "disabled" : ""} onclick="validerAllocationPoints()">
+        ${a.pointsRestants > 0 ? `Encore ${a.pointsRestants} point(s) à placer` : "Valider →"}
+      </button>
+    </div>`;
+
+  document.getElementById("contenuJeu").innerHTML = html;
+}
+
+function ajouterPointAllocation(cle) {
+  const a = allocationEnCours;
+  if (!a || a.pointsRestants <= 0) return;
+  a.repartition[cle]++;
+  a.pointsRestants--;
+  afficherAllocationPoints();
+}
+
+function retirerPointAllocation(cle) {
+  const a = allocationEnCours;
+  if (!a || a.repartition[cle] <= 0) return;
+  a.repartition[cle]--;
+  a.pointsRestants++;
+  afficherAllocationPoints();
+}
+
+function validerAllocationPoints() {
+  const a = allocationEnCours;
+  if (!a || a.pointsRestants > 0) return;
+
+  const suivant = a.suivant;
+
+  const effets = {};
+  STATS_ENTRAINABLES.forEach(s => {
+    if (a.repartition[s.cle] > 0) {
+      effets[s.cle] = a.repartition[s.cle];
+    }
+  });
+
+  appliquerEffets(effets);
+  allocationEnCours = null;
+
+  // Même aiguillage que continuerApresChoix() : gère les valeurs spéciales
+  // en plus des ids de scène classiques (ex: "arc2_pirate_intro", "arc3_marine_intro", etc.)
+  if (suivant === "EVENEMENT") {
+    lancerEvenementAleatoire();
+  } else if (suivant === "FIN") {
+    finDePartie();
+  } else if (suivant === "AIGUILLAGE_CLASSE") {
+    demarrerScene(`arc2_${joueur.classe}_intro`);
+  } else {
+    demarrerScene(suivant);
+  }
 }
 
 function couleurStatutRelation(statut) {
@@ -329,7 +427,13 @@ function continuerApresChoix() {
     return;
   }
 
-  if (resultat.finArc && avancerAge()) {
+  if (resultat.finArc) {
+    if (avancerAge()) return; // retraite déclenchée (40 ans) → fin de partie déjà affichée
+    if (resultat.suivant === "FIN") {
+      finDePartie(); // fin de contenu : pas besoin d'allouer des points avant l'écran de fin
+      return;
+    }
+    demarrerAllocationPoints(resultat.suivant); // sinon, écran de points avant de continuer
     return;
   }
 
@@ -338,8 +442,7 @@ function continuerApresChoix() {
   } else if (resultat.suivant === "FIN") {
     finDePartie();
   } else if (resultat.suivant === "AIGUILLAGE_CLASSE") {
-    const sceneClasse = `arc2_${joueur.classe}_intro`;
-    demarrerScene(sceneClasse);
+    demarrerScene(`arc2_${joueur.classe}_intro`);
   } else {
     demarrerScene(resultat.suivant);
   }
@@ -544,14 +647,14 @@ function lancerEvenementAleatoire() {
 function afficherEvenement(evenement) {
   if (!evenement) return;
   // dans afficherEvenement(), juste après `if (!evenement) return;`
-    joueur.journalArc.push(`⚡ ${evenement.titre}`);
+    joueur.journalArc.push(`🎲 ${evenement.titre}`);
     mettreAJourBarreProgressionArc();
 
   const texte = typeof evenement.texte === "function" ? evenement.texte() : evenement.texte;
 
   let html = `<div class="scene-card">`;
   html += `<span class="scene-tag ${classeTagCategorie(evenement.categorie)}">${evenement.categorie || "Événement"}</span>`;
-  html += `<h2 class="scene-titre">⚡ ${evenement.titre}</h2>`;
+  html += `<h2 class="scene-titre">🎲 ${evenement.titre}</h2>`;
   html += `<p class="scene-texte">${texte}</p>`;
   html += `<div class="scene-choix" id="choixContainer">`;
 

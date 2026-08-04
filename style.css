@@ -1047,3 +1047,74 @@ body {
   filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.5));
   pointer-events: none;
 }
+
+.allocation-liste {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 15px 0;
+}
+
+.allocation-ligne {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 5px;
+  border-bottom: 1px dashed var(--parchment-dark);
+}
+
+.allocation-nom {
+  flex: 1;
+  font-weight: bold;
+  font-size: 0.95rem;
+}
+
+.allocation-valeur {
+  font-family: 'Rye', cursive;
+  font-size: 1.1rem;
+  color: #4a150e;
+  min-width: 30px;
+  text-align: right;
+}
+
+.allocation-ajout {
+  min-width: 45px;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: bold;
+  color: #1c7a5e;
+}
+
+.allocation-ajout-vide {
+  color: #9c8865;
+  font-weight: normal;
+  font-style: italic;
+}
+
+.allocation-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 2px solid #281408;
+  background: linear-gradient(180deg, #6e3d1b 0%, #4a2710 100%);
+  color: #f7e3c3;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  line-height: 1;
+  padding: 0;
+  transition: transform 0.15s ease;
+}
+
+.allocation-btn:hover:not(:disabled) {
+  transform: scale(1.1);
+}
+
+.allocation-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.allocation-btn-plus {
+  background: linear-gradient(180deg, #b98a1f 0%, #7a5c14 100%);
+}

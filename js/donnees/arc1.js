@@ -90,21 +90,21 @@ Object.assign(SCENES, {
                 resultat: "Tu hisses ton propre pavillon. Ta légende commence, libre et sans maître.",
                 effets: { moral: 1 },
                 classe: "pirate",
-                suivant: "FIN" , finArc: true
+                suivant: "arc2_enMer",finArc: true ,
             },
             {
                 texte: "Rejoindre la Marine",
                 resultat: "Tu prêtes serment. Désormais, la justice guide chacun de tes pas.",
                 effets: { reputation: 2 },
                 classe: "marine",
-                suivant: "FIN" , finArc: true
+                suivant: "arc2_enMer",finArc: true
             },
             {
                 texte: "Devenir Révolutionnaire",
                 resultat: "Tu rejoins l'ombre. Ton combat sera long, mais ta cause est juste.",
                 effets: { charisme: 1 },
                 classe: "revolutionnaire",
-                suivant: "FIN" ,finArc: true
+                suivant: "arc2_enMer" ,finArc: true
             }
         ]
     }

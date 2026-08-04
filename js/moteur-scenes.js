@@ -253,8 +253,11 @@ function retourMenuPrincipal() {
   if (btnContinuer) btnContinuer.style.display = "inline-block";
 }
 
-function avancerAge() {
-  joueur.age++;
+// `nombreAnnees` est optionnel (défaut : 1, comme avant). Passer un nombre plus
+// grand (ex: avancerAge(2)) permet de simuler une ellipse narrative — un saut
+// de plusieurs années d'un coup (entraînement en solitaire, coma, exil...).
+function avancerAge(nombreAnnees = 1) {
+  joueur.age += nombreAnnees;
 
   // Archive les événements de l'arc qui vient de se terminer
   joueur.historique.push({
@@ -291,9 +294,13 @@ const STATS_ENTRAINABLES = [
 
 let allocationEnCours = null; // { pointsRestants, repartition: {cle: n}, suivant }
 
-function demarrerAllocationPoints(suivant) {
+// `points` est optionnel : si non fourni, on retombe sur la valeur par défaut
+// POINTS_ENTRAINEMENT_PAR_ARC. Permet de faire varier le nombre de points
+// selon l'arc (ex: 3 en début de jeu, 5 en fin de jeu) ou selon un choix précis
+// (ex: un entraînement intensif qui rapporte plus de points que la normale).
+function demarrerAllocationPoints(suivant, points = POINTS_ENTRAINEMENT_PAR_ARC) {
   allocationEnCours = {
-    pointsRestants: POINTS_ENTRAINEMENT_PAR_ARC,
+    pointsRestants: points,
     repartition: {},
     suivant
   };
@@ -445,13 +452,25 @@ function continuerApresChoix() {
   }
 
   if (resultat.finArc) {
-    if (avancerAge()) return; // retraite déclenchée (40 ans) → fin de partie déjà affichée
+    // `ellipse` (optionnel) : nombre d'années à ajouter d'un coup au lieu d'une seule
+    // (ex: ellipse: 2 pour "Deux ans plus tard..."). Par défaut, avance d'un an comme avant.
+    const nombreAnnees = resultat.ellipse || 1;
+    if (avancerAge(nombreAnnees)) return; // retraite déclenchée → fin de partie déjà affichée
     if (resultat.suivant === "FIN") {
       finDePartie(); // fin de contenu : pas besoin d'allouer des points avant l'écran de fin
       return;
     }
-    demarrerAllocationPoints(resultat.suivant); // sinon, écran de points avant de continuer
+    // `pointsEntrainement` (optionnel) : personnalise le nombre de points à répartir
+    // pour cette fin d'arc précise (sinon, retombe sur POINTS_ENTRAINEMENT_PAR_ARC).
+    demarrerAllocationPoints(resultat.suivant, resultat.pointsEntrainement);
     return;
+  }
+
+  // Ellipse "libre" : un choix peut aussi faire avancer l'âge de plusieurs années
+  // SANS déclencher la fin d'arc classique ni l'écran de points d'entraînement —
+  // utile pour un saut narratif ponctuel en plein milieu d'un arc.
+  if (resultat.ellipse && !resultat.finArc) {
+    if (avancerAge(resultat.ellipse)) return; // retraite déclenchée → fin de partie déjà affichée
   }
 
   if (resultat.suivant === "EVENEMENT") {

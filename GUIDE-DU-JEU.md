@@ -428,6 +428,61 @@ Un succès dédié existe dans `succes.js` (`relation_perte`, groupe "Relations"
 - À **40 ans**, `finRetraite()` se déclenche automatiquement, choisissant un texte de fin selon les stats.
 - À chaque `avancerAge()`, le `journalArc` en cours est archivé dans `historique`, puis vidé pour le prochain arc.
 
+### ⏳ Ellipse temporelle (sauter plusieurs années d'un coup)
+
+`avancerAge()` accepte un paramètre optionnel `nombreAnnees` (défaut : `1`, comme avant) : `avancerAge(2)` fait vieillir le joueur de 2 ans en une seule fois. Utile pour simuler un entraînement en solitaire, un exil, un coma, ou tout saut narratif du type *« Deux ans plus tard... »*.
+
+Deux façons de le déclencher depuis un choix, via le champ `ellipse` :
+
+**1. Ellipse en fin d'arc**, combinée avec `finArc: true` — l'écran de points d'entraînement s'affiche ensuite normalement :
+
+```js
+{
+  texte: "Partir t'entraîner seul, loin de tout",
+  resultat: "Deux années s'écoulent, faites de sueur et de solitude...",
+  effets: { force: 3 },
+  finArc: true,
+  ellipse: 2,          // fait vieillir le joueur de 2 ans au lieu d'1 seul
+  suivant: "arc4_debut"
+}
+```
+
+**2. Ellipse "libre"**, en plein milieu d'un arc, sans passer par l'écran de points ni par la logique de fin d'arc — juste un saut narratif ponctuel :
+
+```js
+{
+  texte: "Accepter de dormir jusqu'à la fin de la tempête",
+  resultat: "À ton réveil, deux années ont passé sans que tu t'en rendes compte.",
+  effets: {},
+  ellipse: 2,          // avance directement l'âge de 2 ans
+  suivant: "arc3_reveil_tardif"
+}
+```
+
+⚠️ Dans les deux cas, si l'ellipse fait franchir le seuil de 40 ans, `finRetraite()` se déclenche automatiquement comme avec un `avancerAge()` normal — pas besoin de vérifier ce seuil manuellement dans les données de scène.
+
+### 🎯 Personnaliser le nombre de points d'entraînement par fin d'arc
+
+Par défaut, chaque fin d'arc (`finArc: true`) propose `POINTS_ENTRAINEMENT_PAR_ARC` points à répartir (3 par défaut, voir constante en haut de `moteur-scenes.js`). Ce nombre peut être :
+
+- **Changé globalement** en modifiant directement la constante `POINTS_ENTRAINEMENT_PAR_ARC`.
+- **Personnalisé pour un choix précis**, via le champ optionnel `pointsEntrainement` sur ce choix :
+
+```js
+{
+  texte: "Achever cet arc éprouvant",
+  resultat: "Cette épreuve t'a transformé plus qu'aucune autre.",
+  effets: {},
+  finArc: true,
+  pointsEntrainement: 5,   // remplace les 3 points par défaut, seulement pour cette fin d'arc
+  suivant: "arc5_debut"
+}
+```
+
+Si `pointsEntrainement` n'est pas fourni, la valeur par défaut (`POINTS_ENTRAINEMENT_PAR_ARC`) s'applique automatiquement — aucune modification nécessaire sur les scènes existantes.
+
+💡 Cohérent avec le [guide de progression des récompenses](./GUIDE-PROGRESSION-RECOMPENSES.md) : les points d'entraînement peuvent eux aussi croître au fil des arcs (ex : 3 en début de jeu, 4-5 en fin de jeu) pour accompagner la montée en puissance du personnage.
+
 ### Fins prématurées
 
 `etatCritiqueAtteint()` vérifie si `vie <= 0` ou `argent <= -10` → déclenche `afficherFinPrematuree()` (mort ou ruine) via `terminerPartie()`.
@@ -727,4 +782,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout du système de hasard pondéré pour les choix à issue (`tirageProbabiliste`, avec pente ajustable et combinaison de plusieurs stats), en complément du seuil dur d'origine. Précédemment : compteur de succès débloqués/total dans l'onglet Succès, distinction succès décoratifs vs récompensés (`recompense` optionnel), système de déblocage d'objets Boutique via succès (`deblocage.succes`), et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout de l'ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse` sur un choix, en fin d'arc ou en plein milieu) et du nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`). Précédemment : système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

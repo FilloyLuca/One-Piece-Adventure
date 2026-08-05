@@ -505,4 +505,13 @@ const SUCCES_CATALOGUE = [
     desc: "Meurs en ayant tenté de manger un second fruit du démon.",
     condition: (j) => (j.competences || []).includes("Second Fruit Ingéré")
   },
+  {
+    id: "destin_ile_natale",
+    groupe: "Destins",
+    nom: "Une vie sans vagues",
+    emoji: "🏝️",
+    desc: "Refuse l'appel de l'aventure et termine ta vie sur ton île natale.",
+    recompense: { pieces: 10 },
+    condition: (j, c) => c.typeFin === "refus_aventure"
+  }
 ];

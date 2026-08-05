@@ -468,7 +468,7 @@ function continuerApresChoix() {
     const nombreAnnees = resultat.ellipse || 1;
     if (avancerAge(nombreAnnees)) return; // retraite déclenchée → fin de partie déjà affichée
     if (resultat.suivant === "FIN") {
-      finDePartie(); // fin de contenu : pas besoin d'allouer des points avant l'écran de fin
+      finDePartie(resultat.finPersonnalisee); // fin de contenu : pas besoin d'allouer des points avant l'écran de fin
       return;
     }
     // `pointsEntrainement` (optionnel) : personnalise le nombre de points à répartir
@@ -487,7 +487,7 @@ function continuerApresChoix() {
   if (resultat.suivant === "EVENEMENT") {
     lancerEvenementAleatoire();
   } else if (resultat.suivant === "FIN") {
-    finDePartie();
+    finDePartie(resultat.finPersonnalisee);
   } else if (resultat.suivant === "AIGUILLAGE_CLASSE") {
     demarrerScene(`arc2_${joueur.classe}_intro`);
   } else {
@@ -917,34 +917,14 @@ function finRetraite() {
   terminerPartie(choix.titre, choix.raison, primeBrute, tierTitre, "retraite");
 }
 
-function finDePartie() {
+function finDePartie(finPersonnalisee) {
   const primeBrute = joueur.stats.prime;
 
   const titresParClasse = {
-    pirate: {
-      bas: "Pirate débutant",
-      moyen: "Menace montante",
-      haut: "Pirate redouté",
-      legende: "Légende de Grand Line"
-    },
-    marine: {
-      bas: "Simple soldat",
-      moyen: "Officier prometteur",
-      haut: "Marine respecté",
-      legende: "Amiral légendaire"
-    },
-    revolutionnaire: {
-      bas: "Révolutionnaire novice",
-      moyen: "Agent de l'ombre",
-      haut: "Figure de la révolution",
-      legende: "Légende de l'Armée Révolutionnaire"
-    },
-    chasseurDePrimes: {
-      bas: "Chasseur de primes débutant",
-      moyen: "Chasseur de primes prometteur",
-      haut: "Chasseur de primes redouté",
-      legende: "Chasseur de primes légendaire"
-    }
+    pirate: { bas: "Pirate débutant", moyen: "Menace montante", haut: "Pirate redouté", legende: "Légende de Grand Line" },
+    marine: { bas: "Simple soldat", moyen: "Officier prometteur", haut: "Marine respecté", legende: "Amiral légendaire" },
+    revolutionnaire: { bas: "Révolutionnaire novice", moyen: "Agent de l'ombre", haut: "Figure de la révolution", legende: "Légende de l'Armée Révolutionnaire" },
+    chasseurDePrimes: { bas: "Chasseur de primes débutant", moyen: "Chasseur de primes prometteur", haut: "Chasseur de primes redouté", legende: "Chasseur de primes légendaire" }
   };
 
   const titres = titresParClasse[joueur.classe] || titresParClasse.pirate;
@@ -955,7 +935,19 @@ function finDePartie() {
   else if (primeBrute >= 30_000_000) { titre = titres.moyen; tierTitre = "moyen"; }
   else { titre = titres.bas; tierTitre = "bas"; }
 
-  terminerPartie(titre, "Ton aventure touche à sa fin, pour l'instant...", primeBrute, tierTitre, "normale");
+  let raison = "Ton aventure touche à sa fin, pour l'instant...";
+  let typeFin = "normale";
+
+  // Permet à un choix précis (via finPersonnalisee) de remplacer le titre/la raison/le
+  // typeFin génériques par une fin narrative sur mesure (ex: refuser l'appel à l'aventure),
+  // sans passer par une mort — contrairement à mortPersonnalisee, réservé aux fins par vie <= 0.
+  if (finPersonnalisee) {
+    if (finPersonnalisee.titre) titre = finPersonnalisee.titre;
+    if (finPersonnalisee.raison) raison = finPersonnalisee.raison;
+    if (finPersonnalisee.typeFin) typeFin = finPersonnalisee.typeFin;
+  }
+
+  terminerPartie(titre, raison, primeBrute, tierTitre, typeFin);
 }
 
 function terminerPartie(titre, raison, prime, tierTitre = "bas", typeFin = "normale") {

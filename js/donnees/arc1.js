@@ -8,28 +8,54 @@ Object.assign(SCENES, {
             {
                 texte: "Regarder par la fenêtre.",
                 resultat: "Archie ton meilleur ami depuis aussi longtemps que tu t'en souviennes est dehors et te fais signe de venir.",
+                effets: {relations: [{ nom: "Archie", statut: "Nakama" }]},
                 suivant: "arc1_le_meilleur_ami"
             },
             {
                 texte: "Rendors-toi et ignore le bruit.",
                 resultat: "Le bruit se fait plus fort, mais tu ne bouges pas. L'instant d'après tu vois Archie ton meilleur ami passer par ta fenêtre.",
+                effets: {relations: [{ nom: "Archie", statut: "Nakama" }]},
                 suivant: "arc1_le_meilleur_ami"
             }
         ]
     },
 
-    arc1_le_meilleur_ami: {
-        categorie: "Moment de vie",
-        titre: "Le meilleur ami",
-        texte: () => `Pendant que vous marchez le long de la falaise Archie qui n'a pas parler depuis 5 bonne minutes te dit. ${joueur.nom} aimes tu ta vie au village ?`,
-        choix: [
-            {
-                texte: "Descendre pour aller vers lui.",
-                resultat: "Tu descends les escaliers et rejoins Archie. Il te raconte ce qui se passe dans le village.",
-                suivant: "arc1_rencontre"
-            }
-        ]
-    },
+  arc1_le_meilleur_ami: {
+    categorie: "Moment de vie",
+    titre: "Le meilleur ami",
+    texte: () => `Pendant que vous marchez le long de la falaise, Archie, qui n'a pas parlé depuis 5 bonnes minutes, te dit : "${joueur.nom}, aimes-tu ta vie au village ?"`,
+    choix: [
+      {
+        texte: "Que veux-tu dire ?",
+        resultat: "Archie réplique.",
+        suivant: "arc1_archie_propose"
+      }
+    ]
+  },
+
+  arc1_archie_propose: {
+    categorie: "Destin",
+    titre: "L'appel du large",
+    texte: () => `"Ça fait bientôt 17 ans qu'on vit ici et on n'a jamais rien vu d'autre. Il faut partir et explorer le monde. Partons ensemble à l'aventure !"`,
+    choix: [
+      {
+        texte: "Je suis d'accord, partons à l'aventure !",
+        resultat: "Archie et toi vous mettez d'accord pour partir à bord du bateau marchand qui réapprovisionne le village, dans un mois.",
+        effets: { competences: ["Décidé à partir"], relations: [{ nom: "Archie", statut: "Nakama" }] },
+        suivant: "arc1_preparatifs_depart"
+      },
+      {
+        texte: "Non, j'aime bien ma vie ici, je ne veux pas partir.",
+        resultat: "Le silence retombe entre vous. Archie hoche la tête, déçu, mais n'insiste pas.",
+        finPersonnalisee: {
+          titre: "Une vie sans vagues",
+          raison: "Loin des tempêtes et des batailles, tu as choisi la tranquillité de ton île natale. Ton nom ne sera jamais gravé dans l'histoire de Grand Line — mais tu as vécu la vie que tu voulais.",
+          typeFin: "refus_aventure"
+        },
+        suivant: "FIN"
+      }
+    ]
+  },
 
     arc1_rencontre: {
         titre: "Une voile à l'horizon",

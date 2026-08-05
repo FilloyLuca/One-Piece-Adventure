@@ -24,7 +24,7 @@ js/
     succes.js                  → définit SUCCES_CATALOGUE (groupé par catégorie : Rangs, Titres, Richesse...)
   creation-personnage.js       → écran de création de personnage + état initial du joueur (RACES, ORIGINES, POSTES, ENTOURAGES)
   moteur-scenes.js             → toute la logique du jeu (affichage, choix, effets, fins)
-  debug.js                   → outils de test développeur (accès direct à une scène, panneau ?debug=1)
+  debug.js                     → outils de test développeur, indépendant du jeu (voir section dédiée plus bas)
 
 audio/
   ambiance-vagues.mp3          → son de fond en boucle
@@ -612,6 +612,47 @@ Points importants :
 
 💡 Combine bien avec le système de compétences pour aussi débloquer un succès dédié à cette mort précise, comme le fait déjà `destin_fruit_interdit` (`succes.js`) avec la compétence `"Second Fruit Ingéré"` de l'exemple ci-dessus.
 
+#### 🏝️ Personnaliser une fin de partie non-mortelle (`finPersonnalisee`)
+
+`mortPersonnalisee` couvre les fins prématurées par `vie <= 0`. Mais un choix peut aussi vouloir mener à une **fin de partie volontaire et non-mortelle** — le personnage ne meurt pas, il choisit simplement un autre destin (rester sur son île natale, abandonner la piraterie, se retirer du jeu politique...). Pour ça, un choix peut définir un champ optionnel `finPersonnalisee` (au même niveau que `effets`, `resultat`, `suivant`...) sur un résultat dont le `suivant` vaut `"FIN"` :
+
+```js
+{
+  texte: "Rester sur l'île, pour de bon",
+  resultat: "Tu as décidé de ne pas répondre à l'appel de l'aventure, et as préféré vivre toute ta vie sur ton île d'enfance.",
+  effets: {},
+  finPersonnalisee: {
+    titre: "Une vie sans vagues",
+    raison: "Loin des tempêtes et des batailles, tu as choisi la tranquillité de ton île natale. Ton nom ne sera jamais gravé dans l'histoire de Grand Line — mais tu as vécu la vie que tu voulais.",
+    typeFin: "refus_aventure"
+  },
+  suivant: "FIN"
+}
+```
+
+Points importants :
+
+- **`titre`, `raison` et `typeFin` sont tous les trois optionnels** : n'importe lequel peut être omis pour garder la valeur générique calculée normalement par `finDePartie()` (titre selon la prime/classe, raison "Ton aventure touche à sa fin, pour l'instant...", `typeFin: "normale"`).
+- **`typeFin` est une chaîne libre**, comme pour n'importe quel autre champ de données (`titre` narratif, noms d'objets...) — tu peux inventer la valeur que tu veux (ex: `"refus_aventure"`), tant qu'elle reste cohérente avec ce que testeront tes succès. Elle vient s'ajouter aux valeurs déjà utilisées par le moteur (`"normale"`, `"retraite"`, `"premature_vie"`, `"premature_endurance"`).
+- **`finDePartie()` accepte ce paramètre** (`finDePartie(resultat.finPersonnalisee)`), appelé automatiquement par `continuerApresChoix()` dans les deux endroits où `finDePartie()` est déclenché (fin d'arc avec `suivant: "FIN"`, et fin directe hors `finArc`) — rien à modifier côté données au-delà du champ `finPersonnalisee` lui-même.
+- Contrairement à `mortPersonnalisee` (réservé aux morts par `vie <= 0`, où `typeFin` reste toujours `premature_vie`), `finPersonnalisee` peut librement changer `typeFin` puisqu'il ne s'agit pas d'une fin prématurée déclenchée par `etatCritiqueAtteint()`.
+
+💡 Comme pour `mortPersonnalisee`, pense à créer un succès dédié dans `succes.js` qui teste ce nouveau `typeFin` :
+
+```js
+{
+  id: "destin_ile_natale",
+  groupe: "Destins",
+  nom: "Une vie sans vagues",
+  emoji: "🏝️",
+  desc: "Refuse l'appel de l'aventure et termine ta vie sur ton île natale.",
+  recompense: { pieces: 10 },
+  condition: (j, c) => c.typeFin === "refus_aventure"
+}
+```
+
+⚠️ Piège fréquent (le même que documenté plus haut pour `scenesVisitees`/`objets`/`competences`) : la chaîne passée à `condition` doit être **copiée-collée à l'identique** depuis `finPersonnalisee.typeFin` dans la scène — pas depuis le nom de la scène, ni reformulée de mémoire. Une différence d'orthographe, même minime, ne provoque aucune erreur : le succès ne se débloquera simplement jamais.
+
 ### Récap final
 
 `terminerPartie()` construit automatiquement un récapitulatif de tous les arcs traversés (`joueur.historique`), affiché dans l'écran de fin — pas besoin d'y toucher pour ajouter du contenu, il se remplit automatiquement au fil du jeu.
@@ -1060,11 +1101,11 @@ sauterAScene("arc5_duel", { force: 20, argent: 50000 })  // pour tester un choix
 sauterAEvenement("naufrage_mysterieux")
 ```
 
-Le deuxième paramètre (optionnel) permet de fixer des stats ou des champs `joueur` précis avant le saut — pratique pour tester un choix verrouillé par `requis`/`interdit` sans avoir à y accéder naturellement.
+Le deuxième paramètre (optionnel) permet de fixer des stats ou des champs `joueur` précis avant le saut — pratique pour tester un choix verrouillé par `requis`/`interdit` sans avoir à y accéder naturellement, ou pour forcer une classe/race donnée sur une scène qui en dépend.
 
 ### Panneau visuel (`?debug=1`)
 
-Ouvrir le jeu avec `index.html?debug=1` fait apparaître un panneau en haut à gauche, listant toutes les scènes de `SCENES` et tous les événements de `EVENEMENTS` sous forme de boutons cliquables. Sans ce paramètre dans l'URL, le panneau ne s'affiche jamais — aucun risque qu'un joueur tombe dessus.
+Ouvrir le jeu avec `index.html?debug=1` fait apparaître un panneau en haut à gauche, listant toutes les scènes de `SCENES` et tous les événements de `EVENEMENTS` sous forme de boutons cliquables. Sans ce paramètre dans l'URL, le panneau ne s'affiche jamais — aucun risque qu'un joueur normal tombe dessus.
 
 ### ⚠️ Limites à garder en tête
 
@@ -1147,4 +1188,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout de la section "🛠️ Outils de debug" documentant `js/debug.js` (sauterAScene, sauterAEvenement, panneau visuel via ?debug=1) — permet de tester n'importe quelle scène/événement sans rejouer toute la partie depuis le début. Précédemment : ajout de la section "💊 Régénération complète (`soinComplet`)"...*
+*Dernière mise à jour de ce guide : ajout de la section "🛠️ Outils de debug" documentant `js/debug.js` (`sauterAScene`, `sauterAEvenement`, panneau visuel via `?debug=1`) — permet de tester n'importe quelle scène/événement sans rejouer toute la partie depuis le début ; et ajout de la section "🏝️ Personnaliser une fin de partie non-mortelle (`finPersonnalisee`)" (sous "Fins prématurées"), le pendant de `mortPersonnalisee` pour les fins de partie volontaires et non-mortelles (refus d'une aventure, retrait de la vie publique...), avec un `typeFin` librement personnalisable pour brancher des succès dédiés. Précédemment : ajout de la section "💊 Régénération complète (`soinComplet`)" (sous "Vie / Endurance"), un nouveau champ de choix qui remet `vie` et `endurance` à leur seuil max courant (`vieMax`/`enduranceMax`), géré par `appliquerSoinComplet()` (`moteur-scenes.js`) — utile pour une auberge, un médecin, ou toute ellipse narrative de repos, sans avoir à calculer manuellement le montant à rendre. Précédemment : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

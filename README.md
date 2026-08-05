@@ -74,10 +74,6 @@ Toute la logique détaillée (comment ajouter une scène, un événement, une co
 
 Ce guide est le point de référence pour comprendre et étendre le jeu — à consulter avant toute modification du contenu narratif ou des mécaniques.
 
-Pour équilibrer les `effets` (stats, argent, prime, risques...) d'une nouvelle scène ou d'un nouvel événement de façon cohérente avec le reste du jeu, voir aussi :
-
-📈 **[GUIDE-PROGRESSION-RECOMPENSES.md](./GUIDE-PROGRESSION-RECOMPENSES.md)**
-
 ---
 
 ## 🧱 Stack technique

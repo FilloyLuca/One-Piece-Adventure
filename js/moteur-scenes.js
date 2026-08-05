@@ -90,7 +90,7 @@ function etatChoix(choix) {
 }
 
 function raisonIndisponibilite(choix) {
-  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", observation: "👁️ Observation", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (choix.requis) {
     if (choix.requis.stats) {
@@ -124,7 +124,7 @@ function raisonIndisponibilite(choix) {
 }
 
 function raisonInterdiction(choix) {
-  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", observation: "👁️ Observation", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (choix.interdit.stats) {
     for (const stat in choix.interdit.stats) {
@@ -157,7 +157,7 @@ function raisonInterdiction(choix) {
 
 function texteConditionHTML(choix) {
   const etat = etatChoix(choix);
-  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", observation: "👁️ Observation", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (etat === "interdit") {
     return `<span class="choix-condition-interdit">🚫 ${raisonInterdiction(choix)}</span>`;
@@ -197,11 +197,6 @@ function demarrerScene(id) {
 
   const scene = SCENES[id];
   if (!scene) return;
-
-  // 🏅 Marque cette scène comme visitée (pour les succès basés sur `scenesVisitees`)
-  if (!joueur.scenesVisitees) joueur.scenesVisitees = [];
-
-  if (!joueur.scenesVisitees.includes(id)) joueur.scenesVisitees.push(id);
   // dans demarrerScene(), juste après `if (!scene) return;`
     joueur.journalArc.push(scene.titre);
     mettreAJourBarreProgressionArc();
@@ -295,7 +290,6 @@ const STATS_ENTRAINABLES = [
   { cle: "vieMax",       nom: "Vie max",        emoji: "❤️" },
   { cle: "enduranceMax",       nom: "Endurance max",        emoji: "🔋" },
   { cle: "force",       nom: "Force",        emoji: "💪" },
-  { cle: "observation", nom: "Observation",  emoji: "👁️" },
   { cle: "charisme",    nom: "Charisme",     emoji: "✨" },
   { cle: "intelligence",nom: "Intelligence", emoji: "🧠" },
   { cle: "vitesse",     nom: "Vitesse",      emoji: "⚡" },
@@ -421,6 +415,13 @@ function choisirDansScene(sceneId, indexChoix) {
 
   appliquerEffets(resultat.effets);
 
+  // 💊 Régénération complète de vie/endurance (voir appliquerSoinComplet()) :
+  // appliquée après les effets classiques, pour ne pas être écrasée par un éventuel
+  // effet vie/endurance du même choix (ex: petit dégât narratif + soin complet ensuite).
+  if (resultat.soinComplet) {
+    appliquerSoinComplet();
+  }
+
   if (resultat.classe) {
     joueur.classe = resultat.classe;
     mettreAJourFiche();
@@ -437,7 +438,7 @@ function choisirDansScene(sceneId, indexChoix) {
   }
 
   const texteResultat = resultat.resultat || resultat.texte || choix.texte;
-  const pillsHTML = formaterEffetsPills(resultat.effets);
+  const pillsHTML = formaterEffetsPills(resultat.effets) + (resultat.soinComplet ? `<span class="effet-pill effet-positif">❤️🔋 Soin complet</span>` : "");
 
   const contenu = document.getElementById("contenuJeu");
   contenu.innerHTML = `
@@ -550,6 +551,17 @@ function appliquerEffets(effets) {
   sauvegarderPartie();
 }
 
+// Régénère intégralement la vie ET l'endurance jusqu'à leur seuil max COURANT
+// (pas une valeur fixe à 100) — utile pour une auberge, un médecin, une nuit de repos,
+// ou toute ellipse narrative où le personnage doit repartir "comme neuf".
+// Se déclenche via le champ `soinComplet: true` sur un choix (voir plus bas).
+function appliquerSoinComplet() {
+  joueur.stats.vie = joueur.stats.vieMax;
+  joueur.stats.endurance = joueur.stats.enduranceMax;
+  mettreAJourFiche();
+  sauvegarderPartie();
+}
+
 function mettreAJourFiche() {
   const fiche = document.getElementById("ficheJoueur");
   if (!fiche) return;
@@ -594,7 +606,7 @@ function mettreAJourFiche() {
       <div>
         <strong style="font-size:1.1rem; color:#4a150e;">🏴‍☠️ ${joueur.nom || "Pirate"}</strong> ${raceHTML} ${classeHTML} ${classeFruitHTML} ${titreHTML}
         <div style="font-size:0.85rem; margin-top:3px;">
-          ❤️ ${joueur.stats.vie}/${joueur.stats.vieMax} · 🔋 ${joueur.stats.endurance}/${joueur.stats.enduranceMax} · 💪 ${joueur.stats.force} · 👁️ ${joueur.stats.observation} · ✨ ${joueur.stats.charisme} · 🧠 ${joueur.stats.intelligence} · ⚡ ${joueur.stats.vitesse} · 🏆 ${joueur.stats.reputation} · 💰 ${formaterBerrys(joueur.stats.argent)} · 📜 ${formaterBerrys(joueur.stats.prime)}
+          ❤️ ${joueur.stats.vie}/${joueur.stats.vieMax} · 🔋 ${joueur.stats.endurance}/${joueur.stats.enduranceMax} · 💪 ${joueur.stats.force} · ✨ ${joueur.stats.charisme} · 🧠 ${joueur.stats.intelligence} · ⚡ ${joueur.stats.vitesse} · 🏆 ${joueur.stats.reputation} · 💰 ${formaterBerrys(joueur.stats.argent)} · 📜 ${formaterBerrys(joueur.stats.prime)}
         </div>
       </div>
       <div style="text-align:right; font-family:'Pirata One', cursive; font-size:1.3rem; color:#4a150e;">
@@ -657,7 +669,7 @@ function afficherDetailsPersonnage() {
     <div class="log-entry">
         <span class="log-day">Statistiques</span><br>
         ❤️ Vie: ${joueur.stats.vie}/${joueur.stats.vieMax} | 🔋 Endurance: ${joueur.stats.endurance}/${joueur.stats.enduranceMax} |<br>
-        💪 Force: ${joueur.stats.force} | 👁️ Observation: ${joueur.stats.observation} | ✨ Charisme: ${joueur.stats.charisme} | 🧠 Intelligence: ${joueur.stats.intelligence} |<br>
+        💪 Force: ${joueur.stats.force} | ✨ Charisme: ${joueur.stats.charisme} | 🧠 Intelligence: ${joueur.stats.intelligence} |<br>
         ⚡ Vitesse: ${joueur.stats.vitesse} | 🏆 Réputation: ${joueur.stats.reputation} | 💰 Argent: ${formaterBerrys(joueur.stats.argent)}
     </div>
     
@@ -719,11 +731,6 @@ function lancerEvenementAleatoire() {
 
 function afficherEvenement(evenement) {
   if (!evenement) return;
-
-  // 🏅 Marque cet événement comme visité (pour les succès basés sur `scenesVisitees`)
-  if (!joueur.scenesVisitees) joueur.scenesVisitees = [];
-  if (!joueur.scenesVisitees.includes(evenement.id)) joueur.scenesVisitees.push(evenement.id);
-  
   // dans afficherEvenement(), juste après `if (!evenement) return;`
     joueur.journalArc.push(`🎲 ${evenement.titre}`);
     mettreAJourBarreProgressionArc();
@@ -775,6 +782,11 @@ function choisirDansEvenement(evenementId, indexChoix) {
 
   appliquerEffets(resultat.effets);
 
+  // 💊 Régénération complète de vie/endurance (voir appliquerSoinComplet())
+  if (resultat.soinComplet) {
+    appliquerSoinComplet();
+  }
+
   if (resultat.classe) {
     joueur.classe = resultat.classe;
     mettreAJourFiche();
@@ -791,7 +803,7 @@ function choisirDansEvenement(evenementId, indexChoix) {
   }
 
   const texteResultat = resultat.resultat || resultat.texte || choix.texte;
-  const pillsHTML = formaterEffetsPills(resultat.effets);
+  const pillsHTML = formaterEffetsPills(resultat.effets) + (resultat.soinComplet ? `<span class="effet-pill effet-positif">❤️🔋 Soin complet</span>` : "");
 
   const contenu = document.getElementById("contenuJeu");
   contenu.innerHTML = `
@@ -1052,7 +1064,6 @@ function formaterEffetsPills(effets) {
     endurance: "🔋 Endurance",
     enduranceMax: "🔋 Endurance max",
     force: "Force",
-    observation: "👁️ Observation",
     reputation: "Réputation",
     charisme: "Charisme",
     argent: "Argent",

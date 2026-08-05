@@ -162,6 +162,24 @@ Le seuil max ne peut jamais descendre en dessous de `1` (protection contre un se
 
 Dans `STATS_ENTRAINABLES` (`moteur-scenes.js`), les entrées vie/endurance ciblent volontairement `vieMax`/`enduranceMax` plutôt que `vie`/`endurance` : un point investi en fin d'arc représente une progression **durable** du personnage. Cibler la valeur actuelle serait souvent inutile, puisque le joueur est généralement déjà proche de son plafond au moment de la répartition — le gain serait immédiatement écrêté.
 
+### 💊 Régénération complète (`soinComplet`)
+
+Comme pour `finArc`/`ellipse`, un choix peut définir, **en dehors** de `effets`, un champ `soinComplet: true` qui régénère intégralement `vie` et `endurance` jusqu'à leur **seuil max courant** (`vieMax`/`enduranceMax` — pas une valeur fixe à 100, qui pourrait être fausse si le joueur a déjà entraîné ses seuils). Pratique pour une auberge, un passage chez le médecin de bord, une nuit de repos bien méritée, ou toute ellipse narrative où le personnage doit repartir "comme neuf" sans avoir à calculer manuellement le montant exact à rendre.
+
+```js
+{
+  texte: "Passer la nuit à l'auberge du port",
+  resultat: "Un lit propre et un repas chaud plus tard, tu te sens comme neuf.",
+  effets: { argent: -50 },
+  soinComplet: true,   // vie et endurance remontent à leur seuil max courant
+  suivant: "EVENEMENT"
+}
+```
+
+Géré par `appliquerSoinComplet()` (`moteur-scenes.js`), appelée dans `choisirDansScene()`/`choisirDansEvenement()` juste **après** `appliquerEffets(resultat.effets)` — un choix peut donc combiner un effet ponctuel (dégât, coût en argent...) et un `soinComplet` sans risque que l'un écrase l'autre, puisque le soin est toujours appliqué en dernier. Le pill `❤️🔋 Soin complet` s'affiche automatiquement dans l'écran de résultat, en plus des pills classiques générés par `formaterEffetsPills()`.
+
+⚠️ Contrairement à `effets: { vieMax: 10 }` (qui **augmente durablement** le seuil), `soinComplet` ne modifie **jamais** `vieMax`/`enduranceMax` — il ramène juste les valeurs actuelles à leur plafond existant. Pour une progression durable du seuil, voir `effets: { vieMax: ... }` plus haut ; les deux peuvent être combinés sur un même choix si besoin (ex: un entraînement qui endurcit **et** soigne en même temps).
+
 ### ⚠️ Points d'attention
 
 - Un objet de la Boutique qui offre un bonus de vie/endurance "de départ" (`appliquerEquipementDepart()`, appelé quand le joueur a déjà toute sa vie/endurance) doit cibler `vieMax`/`enduranceMax` et non `vie`/`endurance`, sinon le bonus est immédiatement plafonné et donc perdu. C'est le cas de l'objet `log_pose` (`js/donnees/boutique.js`), qui utilise `enduranceMax: 10`.
@@ -401,7 +419,9 @@ Un choix peut aussi définir, **en dehors** de `effets` :
 ```js
 classe: "pirate",           // change joueur.classe
 classeFruit: "gomu",         // change joueur.classeFruit
-finArc: true                 // déclenche avancerAge() après ce choix
+finArc: true,                 // déclenche avancerAge() après ce choix
+ellipse: 2,                   // fait avancer l'âge de N années (voir "Ellipse temporelle")
+soinComplet: true             // régénère vie et endurance à leur seuil max courant (voir "💊 Régénération complète")
 ```
 
 ---
@@ -1097,4 +1117,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout de la section "💊 Régénération complète (`soinComplet`)" (sous "Vie / Endurance"), un nouveau champ de choix qui remet `vie` et `endurance` à leur seuil max courant (`vieMax`/`enduranceMax`), géré par `appliquerSoinComplet()` (`moteur-scenes.js`) — utile pour une auberge, un médecin, ou toute ellipse narrative de repos, sans avoir à calculer manuellement le montant à rendre. Précédemment : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

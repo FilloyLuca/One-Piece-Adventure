@@ -197,6 +197,11 @@ function demarrerScene(id) {
 
   const scene = SCENES[id];
   if (!scene) return;
+
+  // 🏅 Marque cette scène comme visitée (pour les succès basés sur `scenesVisitees`)
+  if (!joueur.scenesVisitees) joueur.scenesVisitees = [];
+
+  if (!joueur.scenesVisitees.includes(id)) joueur.scenesVisitees.push(id);
   // dans demarrerScene(), juste après `if (!scene) return;`
     joueur.journalArc.push(scene.titre);
     mettreAJourBarreProgressionArc();
@@ -714,6 +719,11 @@ function lancerEvenementAleatoire() {
 
 function afficherEvenement(evenement) {
   if (!evenement) return;
+
+  // 🏅 Marque cet événement comme visité (pour les succès basés sur `scenesVisitees`)
+  if (!joueur.scenesVisitees) joueur.scenesVisitees = [];
+  if (!joueur.scenesVisitees.includes(evenement.id)) joueur.scenesVisitees.push(evenement.id);
+  
   // dans afficherEvenement(), juste après `if (!evenement) return;`
     joueur.journalArc.push(`🎲 ${evenement.titre}`);
     mettreAJourBarreProgressionArc();

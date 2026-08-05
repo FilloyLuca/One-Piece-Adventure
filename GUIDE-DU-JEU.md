@@ -740,6 +740,67 @@ Comme pour `objets`/`competences`/`relations`, aucune déclaration préalable n'
 
 ⚠️ Autre piège : `vie`/`endurance` (valeur actuelle) et `vieMax`/`enduranceMax` (seuil max) sont deux clés distinctes (voir "❤️🔋 Vie / Endurance : valeur actuelle vs seuil max") — un succès voulant récompenser un seuil max durablement élevé doit bien cibler `vieMax`/`enduranceMax`, pas `vie`/`endurance`, sous peine de dépendre de l'état ponctuel du joueur à l'instant précis de `terminerPartie()` plutôt que de sa progression réelle.
 
+### Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)
+
+Contrairement à `objets`/`competences`/`relations`/`stats`, **atteindre une scène ou un événement n'est pas enregistré nulle part par défaut** — `joueur` ne garde aucune trace des `SCENES`/`EVENEMENTS` traversés au fil de la partie. Pour débloquer un succès du type *« Découvre tel lieu »* ou *« Tombe sur tel événement rare »*, il faut donc un tableau dédié : `joueur.scenesVisitees` (tableau d'ids, rempli automatiquement par le moteur).
+
+**Mise en place (une seule fois, déjà faite dans le projet) :**
+
+1. **`creation-personnage.js`** — le champ est déclaré vide à l'état initial du joueur, comme les autres tableaux (`objets`, `competences`...) :
+
+```js
+let joueur = {
+  // ...
+  journalArc: [],
+  historique: [],
+  scenesVisitees: []   // ids des scènes/événements déjà atteints, pour les succès de découverte
+};
+```
+
+2. **`moteur-scenes.js`** — chaque scène et chaque événement s'ajoute automatiquement au tableau dès qu'il s'affiche, dans `demarrerScene()` :
+
+```js
+const scene = SCENES[id];
+if (!scene) return;
+
+// 🏅 Marque cette scène comme visitée (pour les succès basés sur scenesVisitees)
+if (!joueur.scenesVisitees) joueur.scenesVisitees = [];
+if (!joueur.scenesVisitees.includes(id)) joueur.scenesVisitees.push(id);
+```
+
+...et de la même façon dans `afficherEvenement()`, avec `evenement.id` à la place de `id`. Le `if (!joueur.scenesVisitees) ...` protège les sauvegardes déjà existantes en `localStorage`, créées avant l'ajout de ce champ.
+
+**Écrire le succès**, en utilisant l'**id exact** de la scène (la clé dans `SCENES`) ou de l'événement (`ev.id`) — jamais le `titre` affiché, qui peut être réécrit narrativement sans que ça casse le succès :
+
+```js
+{
+  id: "atteint_arc1_reveil",
+  groupe: "Aventure",
+  nom: "Le grand réveil",
+  emoji: "🌅",
+  desc: "Atteins la scène du réveil au tout début de l'aventure.",
+  recompense: { pieces: 5 },
+  condition: (j) => (j.scenesVisitees || []).includes("arc1_reveil")
+}
+```
+
+```js
+// Exemple avec un événement aléatoire rare (faible poidsBase dans EVENEMENTS)
+{
+  id: "rencontre_rare",
+  groupe: "Aventure",
+  nom: "Une rencontre inattendue",
+  emoji: "🎲",
+  desc: "Tombe sur l'événement « Le naufragé mystérieux ».",
+  recompense: { pieces: 20 },
+  condition: (j) => (j.scenesVisitees || []).includes("naufrage_mysterieux")
+}
+```
+
+⚠️ Comme pour `objets`/`competences` (voir plus haut), la comparaison est une égalité stricte de texte : l'id passé à `.includes()` doit être copié-collé exactement depuis la clé de `SCENES` ou le champ `id` de l'entrée dans `EVENEMENTS`, sans quoi le succès ne se débloquera jamais silencieusement.
+
+`joueur.scenesVisitees` fait partie de l'objet `joueur` comme n'importe quel autre champ : il est donc automatiquement sauvegardé et rechargé par `sauvegarderPartie()` / `chargerPartie()`, sans rien à faire de plus côté persistance. Sur une très longue partie (beaucoup d'arcs), le tableau grossit, mais reste négligeable en taille (juste une liste d'ids courts en `localStorage`).
+
 ### Groupes et affichage
 
 L'onglet Succès (`afficherSucces()` dans `moteur-scenes.js`) regroupe automatiquement les entrées de `SUCCES_CATALOGUE` par leur champ `groupe`, dans l'ordre où elles apparaissent dans le fichier — pas besoin de déclarer les groupes à part. Les groupes actuels : **Rangs**, **Titres**, **Richesse**, **Aventure**, **Fruits du Démon**, **Relations**, **Destins** — libre à toi d'en ajouter d'autres en donnant simplement une nouvelle valeur à `groupe`.
@@ -1036,4 +1097,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

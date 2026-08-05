@@ -180,6 +180,7 @@ let joueur = {
   relations: [],  
   journalArc: [],   
   historique: [],    
+  scenesVisitees: []   // garde une trace des ids de scènes/événements
 };
 
 let etapeActuelle = 0;

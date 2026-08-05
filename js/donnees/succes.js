@@ -201,13 +201,12 @@ const SUCCES_CATALOGUE = [
 
   // ---------- Groupe : Aventure ----------
   {
-    id: "aventure_retraite",
+    id: "atteint_arc1_reveil",
     groupe: "Aventure",
-    nom: "Retraite méritée",
-    emoji: "🎂",
-    desc: "Atteins 40 ans et pars à la retraite.",
-    recompense: { pieces: 50 },
-    condition: (j, c) => c.typeFin === "retraite"
+    nom: "Le grand réveil",
+    emoji: "🌅",
+    desc: "Debute ton aventure.",
+    condition: (j) => (j.scenesVisitees || []).includes("arc1_reveil")
   },
   {
     id: "aventure_15arcs",
@@ -217,6 +216,15 @@ const SUCCES_CATALOGUE = [
     desc: "Termine une partie après avoir vécu au moins 15 arcs.",
     recompense: { pieces: 20 },
     condition: (j, c) => c.arcs >= 15
+  },
+  {
+    id: "aventure_retraite",
+    groupe: "Aventure",
+    nom: "Retraite méritée",
+    emoji: "🎂",
+    desc: "Atteins 40 ans et pars à la retraite.",
+    recompense: { pieces: 50 },
+    condition: (j, c) => c.typeFin === "retraite"
   },
   {
     id: "aventure_survivant",

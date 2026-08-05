@@ -451,7 +451,7 @@ function continuerApresChoix() {
   derniereIssue = null;
 
   if (etatCritiqueAtteint()) {
-    afficherFinPrematuree();
+    afficherFinPrematuree(resultat && resultat.mortPersonnalisee);
     return;
   }
 
@@ -817,7 +817,7 @@ function etatCritiqueAtteint() {
   return joueur.stats.endurance <= -50 || joueur.stats.vie <= 0; ;
 }
 
-function afficherFinPrematuree() {
+function afficherFinPrematuree(mortPersonnalisee) {
   let raison, titre, typeFin;
   if (joueur.stats.endurance <= -50)  {
     raison = "Tu n'as pas su gérer ton endurance et ton corps a lâché.";
@@ -828,6 +828,16 @@ function afficherFinPrematuree() {
     titre = "Mort tragique";
     typeFin = "premature_vie";
   }
+
+  // Permet à un choix précis (via effets.mortPersonnalisee) de remplacer le titre/la raison
+  // génériques par un texte narratif sur mesure (ex: mort par ingestion d'un second fruit),
+  // sans toucher au typeFin — les succès liés (destin_mort, destin_surmenage...) continuent
+  // de se déclencher normalement.
+  if (mortPersonnalisee) {
+    if (mortPersonnalisee.titre) titre = mortPersonnalisee.titre;
+    if (mortPersonnalisee.raison) raison = mortPersonnalisee.raison;
+  }
+
   terminerPartie(titre, raison, 0, "bas", typeFin);
 }
 

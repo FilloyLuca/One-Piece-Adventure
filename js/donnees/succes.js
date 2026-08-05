@@ -332,11 +332,21 @@ const SUCCES_CATALOGUE = [
     id: "fruit_demon",
     groupe: "Fruits du Démon",
     nom: "Élu par le fruit",
-    emoji: "🍎",
+    emoji: "🍈",
     desc: "Termine une partie après avoir mangé un fruit du démon.",
     recompense: { pieces: 25 },
     condition: (j) => !!j.classeFruit
   },
+  {
+    id: "legende_double_fruit",
+    groupe: "Fruits du Démon",
+    nom: "L'Impossible",
+    emoji: "🍈🍎",
+    desc: "Survis à l'ingestion d'un second fruit du démon.",
+    recompense: { pieces: 100 },
+    condition: (j) => (j.competences || []).includes("Survivant du Second Fruit")
+  },
+  
 
 
   // ---------- Groupe : Objets ----------
@@ -410,5 +420,14 @@ const SUCCES_CATALOGUE = [
     desc: "Termine une partie à bout de forces, épuisé par le surmenage.",
     recompense: { pieces: 10 },
     condition: (j, c) => c.typeFin === "premature_endurance"
-  }
+  },
+  {
+    id: "destin_fruit_interdit",
+    groupe: "Destins",
+    nom: "Le prix du second pouvoir",
+    emoji: "💀🍈",
+    desc: "Meurs en ayant tenté de manger un second fruit du démon.",
+    recompense: { pieces: 15 },
+    condition: (j) => (j.competences || []).includes("Second Fruit Ingéré")
+  },
 ];

@@ -52,7 +52,7 @@ const pagesGuide = {
     </ul>
   `,
   5: `
-    <h2 class="book-title">📜 Les Succès</h2>
+    <h2 class="book-title">👑 Les Succès</h2>
     <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
       <li><strong>👑 Succès :</strong> Obtenez des distinctions pour vos accomplissements au cours de votre aventure.</li> <br>
       <li><strong>Certains succès débloquent des objets à acheter dans la boutique par la suite.</strong></li>

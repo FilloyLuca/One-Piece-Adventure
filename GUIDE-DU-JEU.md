@@ -554,7 +554,41 @@ Si `pointsEntrainement` n'est pas fourni, la valeur par défaut (`POINTS_ENTRAIN
 
 ### Fins prématurées
 
-`etatCritiqueAtteint()` vérifie si `vie <= 0` ou `argent <= -10` → déclenche `afficherFinPrematuree()` (mort ou ruine) via `terminerPartie()`.
+`etatCritiqueAtteint()` vérifie si `vie <= 0` ou `endurance <= -50` → déclenche `afficherFinPrematuree()` (mort ou surmenage) via `terminerPartie()`.
+
+Par défaut, cette fin affiche un titre et une raison **génériques**, qui dépendent uniquement de la stat en cause :
+
+| Cause | Titre par défaut | Raison par défaut | `typeFin` |
+|---|---|---|---|
+| `vie <= 0` | "Mort tragique" | "Tu as été gravement blessé et n'as pas survécu à tes blessures." | `premature_vie` |
+| `endurance <= -50` | "Surmenage fatal" | "Tu n'as pas su gérer ton endurance et ton corps a lâché." | `premature_endurance` |
+
+#### 💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)
+
+Si un choix précis doit provoquer la mort (`vie <= 0`) et que tu veux que l'écran de fin raconte **cette mort en particulier**, plutôt que d'afficher le texte générique "Mort tragique" — ajoute un champ optionnel `mortPersonnalisee` sur le résultat du choix (au même niveau que `effets`, `resultat`, `suivant`...) :
+
+```js
+{
+  texte: "Manger un second fruit du démon, malgré la légende qui dit que c'est mortel",
+  resultat: "Une douleur indescriptible envahit chaque cellule de ton corps. Deux pouvoirs démoniaques ne peuvent cohabiter...",
+  effets: { vie: -999, competences: ["Second Fruit Ingéré"] },
+  mortPersonnalisee: {
+    titre: "Le prix du second pouvoir",
+    raison: "Ton corps n'a pas supporté d'accueillir un second fruit du démon. Ambitieux jusqu'au bout, tu t'effondres, dévoré de l'intérieur par ta propre soif de puissance."
+  },
+  suivant: "EVENEMENT"
+}
+```
+
+Points importants :
+
+- **`effets: { vie: -999 }`** (ou toute valeur qui ramène `vie` à 0 ou moins) est ce qui déclenche réellement `etatCritiqueAtteint()` — `mortPersonnalisee` ne fait que personnaliser le texte affiché, il ne provoque pas la mort à lui seul.
+- **`titre` et `raison` sont tous les deux optionnels** : tu peux ne remplacer que l'un des deux (ex: garder la raison générique mais donner un titre spécifique) en omettant l'autre champ.
+- **`typeFin` n'est jamais modifié** par `mortPersonnalisee` : une mort par `vie <= 0` reste classée `premature_vie`, même avec un texte personnalisé. Les succès qui dépendent de `typeFin` (ex: `destin_mort`, groupe "Destins") continuent donc de se déclencher normalement, sans rien à changer côté `succes.js`.
+- Fonctionne aussi bien sur un choix de scène classique que sur un résultat `succes`/`echec` d'un choix à `issue` (voir "Choix à issue variable" plus haut) — `mortPersonnalisee` est simplement lu sur l'objet résultat final (`derniereIssue`), peu importe son origine.
+- Un choix qui ne définit pas `mortPersonnalisee` continue de produire le texte générique "Mort tragique" comme avant — ce champ est entièrement optionnel, aucune scène existante n'a besoin d'être modifiée.
+
+💡 Combine bien avec le système de compétences pour aussi débloquer un succès dédié à cette mort précise, comme le fait déjà `destin_fruit_interdit` (`succes.js`) avec la compétence `"Second Fruit Ingéré"` de l'exemple ci-dessus.
 
 ### Récap final
 
@@ -1002,4 +1036,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout des sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`). Précédemment : pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

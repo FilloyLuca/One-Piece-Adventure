@@ -210,13 +210,13 @@ const SUCCES_CATALOGUE = [
     condition: (j, c) => c.typeFin === "retraite"
   },
   {
-    id: "aventure_3arcs",
+    id: "aventure_15arcs",
     groupe: "Aventure",
     nom: "Vétéran des mers",
     emoji: "📜",
-    desc: "Termine une partie après avoir vécu au moins 3 arcs.",
+    desc: "Termine une partie après avoir vécu au moins 15 arcs.",
     recompense: { pieces: 20 },
-    condition: (j, c) => c.arcs >= 3
+    condition: (j, c) => c.arcs >= 15
   },
   {
     id: "aventure_survivant",
@@ -235,7 +235,6 @@ const SUCCES_CATALOGUE = [
     nom: "Bonne santé",
     emoji: "❤️",
     desc: "Termine une partie avec une vie max d'au moins 150.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.vieMax >= 150
   },
   {
@@ -244,7 +243,6 @@ const SUCCES_CATALOGUE = [
     nom: "Bien vivant",
     emoji: "🔋",
     desc: "Termine une partie avec une endurance max d'au moins 150.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.enduranceMax >= 150
   },
   {
@@ -253,7 +251,6 @@ const SUCCES_CATALOGUE = [
     nom: "Gonflette",
     emoji: "💪",
     desc: "Termine une partie avec une force d'au moins 50.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.vie >= 50
   },
   {
@@ -262,7 +259,6 @@ const SUCCES_CATALOGUE = [
     nom: "Charmeur(euse)",
     emoji: "✨",
     desc: "Termine une partie avec un charisme d'au moins 50.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.charisme >= 50
   },
   {
@@ -271,7 +267,6 @@ const SUCCES_CATALOGUE = [
     nom: "Petit(e) futé(e)",
     emoji: "🧠",
     desc: "Termine une partie avec une intelligence d'au moins 50.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.intelligence >= 50
   },
   {
@@ -280,7 +275,6 @@ const SUCCES_CATALOGUE = [
     nom: "Pile électrique",
     emoji: "⚡",
     desc: "Termine une partie avec une vitesse d'au moins 50.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.vitesse >= 50
   },
   {
@@ -289,8 +283,63 @@ const SUCCES_CATALOGUE = [
     nom: "Célèbrité",
     emoji: "🏆",
     desc: "Termine une partie avec une reputation d'au moins 50.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.reputation >= 50
+  },
+    {
+    id: "statistiques_vie_200",
+    groupe: "Statistiques",
+    nom: "Intuable",
+    emoji: "❤️❤️",
+    desc: "Termine une partie avec une vie max d'au moins 200.",
+    condition: (j) => j.stats.vieMax >= 200
+  },
+  {
+    id: "statistiques_endurance_200",
+    groupe: "Statistiques",
+    nom: "Inepuisable",
+    emoji: "🔋🔋",
+    desc: "Termine une partie avec une endurance max d'au moins 200.",
+    condition: (j) => j.stats.enduranceMax >= 200
+  },
+  {
+    id: "statistiques_force_100",
+    groupe: "Statistiques",
+    nom: "Surhumain(e)",
+    emoji: "💪💪",
+    desc: "Termine une partie avec une force d'au moins 100.",
+    condition: (j) => j.stats.vie >= 100
+  },
+  {
+    id: "statistiques_charisme_100",
+    groupe: "Statistiques",
+    nom: "Don Juan / Don Juanita",
+    emoji: "✨✨",
+    desc: "Termine une partie avec un charisme d'au moins 100.",
+    condition: (j) => j.stats.charisme >= 100
+  },
+  {
+    id: "statistiques_intelligence_100",
+    groupe: "Statistiques",
+    nom: "Génie",
+    emoji: "🧠🧠",
+    desc: "Termine une partie avec une intelligence d'au moins 100.",
+    condition: (j) => j.stats.intelligence >= 100
+  },
+  {
+    id: "statistiques_vitesse_100",
+    groupe: "Statistiques",
+    nom: "Une fusée",
+    emoji: "⚡⚡",
+    desc: "Termine une partie avec une vitesse d'au moins 100.",
+    condition: (j) => j.stats.vitesse >= 100
+  },
+  {
+    id: "statistiques_reputation_100",
+    groupe: "Statistiques",
+    nom: "Une légende",
+    emoji: "🏆🏆",
+    desc: "Termine une partie avec une reputation d'au moins 100.",
+    condition: (j) => j.stats.reputation >= 100
   },
 
 
@@ -303,7 +352,6 @@ const SUCCES_CATALOGUE = [
     nom: "Millionnaire",
     emoji: "💰",
     desc: "Termine une partie avec au moins 1 000 000 ฿.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.argent >= 1000000
   },
   {
@@ -312,7 +360,6 @@ const SUCCES_CATALOGUE = [
     nom: "Multi-millionnaire",
     emoji: "💰",
     desc: "Termine une partie avec au moins 10_000_000 ฿.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.argent >= 10_000_000
   },
   {
@@ -321,7 +368,6 @@ const SUCCES_CATALOGUE = [
     nom: "Milliardaire",
     emoji: "💰",
     desc: "Termine une partie avec au moins 1 000 000 000 ฿.",
-    recompense: { pieces: 10 },
     condition: (j) => j.stats.argent >= 1_000_000_000
   },
 
@@ -401,6 +447,30 @@ const SUCCES_CATALOGUE = [
   },
 
   // ---------- Groupe : Competences ----------
+  {
+    id: "haki_armement",
+    groupe: "Competences",
+    nom: "Haki de l'armement",
+    emoji: "💪⚫",
+    desc: "Debloque le haki de l'armement.",
+    condition: (j) => (j.competences || []).includes("haki de l'armement")
+  },
+  {
+    id: "haki_observation",
+    groupe: "Competences",
+    nom: "Haki de l'observation",
+    emoji: "👀⚫",
+    desc: "Debloque le haki de l'observation.",
+    condition: (j) => (j.competences || []).includes("haki de l'observation")
+  },
+  {
+    id: "haki_Desrois",
+    groupe: "Competences",
+    nom: "Haki des rois",
+    emoji: "👑⚫",
+    desc: "Eveille le haki des rois qui est en toi.",
+    condition: (j) => (j.competences || []).includes("haki des rois")
+  },
 
   // ---------- Groupe : Destins ----------
   {
@@ -409,7 +479,6 @@ const SUCCES_CATALOGUE = [
     nom: "Repose en paix",
     emoji: "☠️",
     desc: "Meurs des suites de tes blessures.",
-    recompense: { pieces: 10 },
     condition: (j, c) => c.typeFin === "premature_vie"
   },
   {
@@ -418,7 +487,6 @@ const SUCCES_CATALOGUE = [
     nom: "Corps brisé",
     emoji: "🩹",
     desc: "Termine une partie à bout de forces, épuisé par le surmenage.",
-    recompense: { pieces: 10 },
     condition: (j, c) => c.typeFin === "premature_endurance"
   },
   {
@@ -427,7 +495,6 @@ const SUCCES_CATALOGUE = [
     nom: "Le prix du second pouvoir",
     emoji: "💀🍈",
     desc: "Meurs en ayant tenté de manger un second fruit du démon.",
-    recompense: { pieces: 15 },
     condition: (j) => (j.competences || []).includes("Second Fruit Ingéré")
   },
 ];

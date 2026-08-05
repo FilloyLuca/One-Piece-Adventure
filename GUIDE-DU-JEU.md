@@ -24,6 +24,7 @@ js/
     succes.js                  → définit SUCCES_CATALOGUE (groupé par catégorie : Rangs, Titres, Richesse...)
   creation-personnage.js       → écran de création de personnage + état initial du joueur (RACES, ORIGINES, POSTES, ENTOURAGES)
   moteur-scenes.js             → toute la logique du jeu (affichage, choix, effets, fins)
+  debug.js                   → outils de test développeur (accès direct à une scène, panneau ?debug=1)
 
 audio/
   ambiance-vagues.mp3          → son de fond en boucle
@@ -43,6 +44,7 @@ audio/
 <script src="js/donnees/succes.js"></script>
 <script src="js/creation-personnage.js"></script>
 <script src="js/moteur-scenes.js"></script>
+<script src="js/debug.js"></script>
 ```
 
 `etat-jeu.js` doit toujours être chargé **avant** les fichiers de `donnees/`, car ceux-ci remplissent les objets `SCENES` et `EVENEMENTS` qu'il déclare vides.
@@ -1044,6 +1046,34 @@ Les deux options ne sont pas mutuellement exclusives sur l'ensemble du jeu — r
 
 ---
 
+## 🛠️ Outils de debug (tester sans tout rejouer)
+
+Sur un jeu à plusieurs arcs, rejouer toute l'aventure depuis le début pour vérifier une scène en particulier devient vite ingérable. `js/debug.js` permet de sauter directement à n'importe quelle scène ou événement, sans passer par la création de personnage ni l'historique.
+
+Ce fichier est **entièrement indépendant** du reste du jeu : il ne fait qu'appeler des fonctions déjà existantes (`demarrerScene()`, `afficherEvenement()`, `mettreAJourFiche()`). Le jeu fonctionne normalement même si `js/debug.js` est retiré de `index.html` — c'est d'ailleurs recommandé avant tout déploiement public.
+
+### Utilisation en console (F12 → onglet Console)
+
+```js
+sauterAScene("arc3_debut")
+sauterAScene("arc5_duel", { force: 20, argent: 50000 })  // pour tester un choix requis/interdit
+sauterAEvenement("naufrage_mysterieux")
+```
+
+Le deuxième paramètre (optionnel) permet de fixer des stats ou des champs `joueur` précis avant le saut — pratique pour tester un choix verrouillé par `requis`/`interdit` sans avoir à y accéder naturellement.
+
+### Panneau visuel (`?debug=1`)
+
+Ouvrir le jeu avec `index.html?debug=1` fait apparaître un panneau en haut à gauche, listant toutes les scènes de `SCENES` et tous les événements de `EVENEMENTS` sous forme de boutons cliquables. Sans ce paramètre dans l'URL, le panneau ne s'affiche jamais — aucun risque qu'un joueur tombe dessus.
+
+### ⚠️ Limites à garder en tête
+
+- Un saut direct ne passe pas par `avancerAge()` : si tu sautes à l'arc 7 sans avoir vécu les arcs précédents, `joueur.historique` reste vide pour les arcs 1 à 6. Sans impact sur le test du contenu narratif en lui-même, mais l'écran de fin de partie (récap par arc) sera incomplet si tu testes jusque-là.
+- `_preparerJoueurPourDebug()` fixe des valeurs par défaut minimales (`classe: "pirate"`, `race: "humain"`, `nom: "Testeur"`) uniquement si elles ne sont pas déjà définies, pour éviter les erreurs sur les scènes qui lisent `joueur.classe`/`joueur.race`. Pense à les surcharger via le deuxième paramètre si le contenu testé dépend d'une classe ou race précise (ex: `sauterAScene("arc4_marine_intro", { classe: "marine" })`).
+- Avant un déploiement public, retire (ou commente) la ligne `<script src="js/debug.js"></script>` dans `index.html`.
+
+---
+
 ## ✅ Checklist rapide pour ajouter un nouvel arc
 
 1. Crée `js/donnees/arc2.js` sur le modèle de `arc1.js` (`Object.assign(SCENES, {...})` + `EVENEMENTS.push(...)`).
@@ -1117,4 +1147,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout de la section "💊 Régénération complète (`soinComplet`)" (sous "Vie / Endurance"), un nouveau champ de choix qui remet `vie` et `endurance` à leur seuil max courant (`vieMax`/`enduranceMax`), géré par `appliquerSoinComplet()` (`moteur-scenes.js`) — utile pour une auberge, un médecin, ou toute ellipse narrative de repos, sans avoir à calculer manuellement le montant à rendre. Précédemment : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout de la section "🛠️ Outils de debug" documentant `js/debug.js` (sauterAScene, sauterAEvenement, panneau visuel via ?debug=1) — permet de tester n'importe quelle scène/événement sans rejouer toute la partie depuis le début. Précédemment : ajout de la section "💊 Régénération complète (`soinComplet`)"...*

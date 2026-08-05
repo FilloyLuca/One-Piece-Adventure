@@ -2,19 +2,30 @@
 Object.assign(SCENES, {
     arc1_reveil: {
         categorie: "Moment de vie",
-        titre: "Une vie monotone",
-        texte: () => `${joueur.nom} à l'aube de ses 17 ans est decider à quitter son ile natale et à ecrire son nom dans l'histoire. Maintenant il reste plus qu'a trouver un bateau.`,
+        titre: "Le reveil",
+        texte: () => `Tu te reveilles dans ton lit allerter par un bruit dehors.`,
         choix: [
             {
-                texte: "Foncer droit vers le port",
-                resultat: "Tu enfilles les premier habits qui passe et cours en direction du port.",
-                suivant: "arc1_rencontre"
+                texte: "Regarder par la fenêtre.",
+                resultat: "Archie ton meilleur ami depuis aussi longtemps que tu t'en souviennes est dehors et te fais signe de venir.",
+                suivant: "arc1_le_meilleur_ami"
             },
             {
-                texte: "Faire une dernière escale au village pour des provisions",
-                requis: { stats: { argent: 10 } },
-                resultat: "Tu fais le plein de provisions, mais cette hésitation te pèse un peu.",
-                effets: { argent: 2, moral: -1 },
+                texte: "Rendors-toi et ignore le bruit.",
+                resultat: "Le bruit se fait plus fort, mais tu ne bouges pas. L'instant d'après tu vois Archie ton meilleur ami passer par ta fenêtre.",
+                suivant: "arc1_le_meilleur_ami"
+            }
+        ]
+    },
+
+    arc1_le_meilleur_ami: {
+        categorie: "Moment de vie",
+        titre: "Le meilleur ami",
+        texte: () => `Pendant que vous marchez le long de la falaise Archie qui n'a pas parler depuis 5 bonne minutes te dit. ${joueur.nom} aimes tu ta vie au village ?`,
+        choix: [
+            {
+                texte: "Descendre pour aller vers lui.",
+                resultat: "Tu descends les escaliers et rejoins Archie. Il te raconte ce qui se passe dans le village.",
                 suivant: "arc1_rencontre"
             }
         ]
@@ -114,10 +125,10 @@ Object.assign(SCENES, {
 // ---------- 2. ÉVÉNEMENTS ALÉATOIRES ----------
 EVENEMENTS.push(
   {
-    id: "marine_patrouille",
+    id: "petiteFrappe",
     categorie: "Danger",
-    titre: "Patrouille de la Marine",
-    texte: () => `Une frégate de la Marine s'approche. ${joueur.nom} sent tous les regards se tourner vers lui.`,
+    titre: "Petite frappe en de ton village",
+    texte: () => `Depuis petit ces trois cancres ne cessent d'importuner tout le village et aujourd'hui, c'est ton tour.`,
     poidsBase: 3,
     condition: (j) => (j.stats.reputation > 8 ? 2 : 1),
     choix: [

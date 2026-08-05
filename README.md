@@ -52,6 +52,7 @@ js/
   audio.js                   → gestion de l'ambiance sonore
   creation-personnage.js     → création de personnage + état du joueur
   moteur-scenes.js           → moteur de jeu (scènes, choix, effets, fins, succès, boutique)
+  debug.js                   → outils de test développeur (accès direct à une scène, panneau ?debug=1)
   donnees/
     classes.js                → classes principales et fruits du démon
     arc1.js                    → contenu narratif du premier arc
@@ -90,6 +91,7 @@ Ce guide est le point de référence pour comprendre et étendre le jeu — à c
 - Arcs suivants (2, 3, ...), avec personnalisation par classe (voir le guide, section "Personnaliser l'histoire selon la classe").
 - Succès secrets (masquer nom/description tant qu'ils ne sont pas débloqués).
 - Système multi-appareils pour la sauvegarde (nécessiterait un backend).
+- Retirer `js/debug.js` de `index.html` avant tout déploiement public (voir GUIDE-DU-JEU.md, section "Outils de debug").
 
 ---
 

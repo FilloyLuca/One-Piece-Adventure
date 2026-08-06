@@ -88,7 +88,9 @@ let joueur = {
   objets: [],
   relations: [],         // [{ nom: "Luffy", statut: "Allié" }, ...]
   journalArc: [],         // titres des scènes/événements de l'arc en cours
-  historique: []          // [{ numeroArc, age, evenements: [...] }, ...]
+  historique: [],          // [{ numeroArc, age, evenements: [...] }, ...]
+  scenesVisitees: [],     // ids des scènes/événements déjà atteints (succès de découverte)
+  flags: {}                // états narratifs libres, pour la continuité des événements — voir section dédiée
 };
 ```
 
@@ -254,6 +256,218 @@ EVENEMENTS.push({
 ```
 
 Le tirage pondéré est géré par `lancerEvenementAleatoire()` dans `moteur-scenes.js` — pas besoin d'y toucher pour ajouter un événement, juste le déclarer via `EVENEMENTS.push(...)`.
+
+---
+
+## 🔗 Continuité entre événements aléatoires
+
+Par défaut, `lancerEvenementAleatoire()` tire un événement au hasard pondéré à chaque fois, sans aucune mémoire de ce qui s'est passé avant — chaque événement est une île isolée. Trois outils permettent de créer de la continuité narrative entre plusieurs événements (ou entre un événement et une scène, ou avec un arc précis), selon le niveau de contrôle voulu.
+
+### 1. Suite garantie, immédiate (pas de repassage par le hasard)
+
+Le cas le plus simple : un événement doit systématiquement enchaîner sur une suite précise, sans risquer qu'un autre événement s'intercale. Il suffit d'utiliser le système de chaînage `suivant` déjà existant — **rien à ajouter au moteur**.
+
+Le point important : la **suite** (`merci_al` ci-dessous) doit être déclarée dans `SCENES` (via `Object.assign(SCENES, {...})`), pas dans `EVENEMENTS`. `continuerApresChoix()` ne reconnaît que trois valeurs spéciales pour `suivant` (`"EVENEMENT"`, `"FIN"`, `"AIGUILLAGE_CLASSE"`) ; toute autre chaîne est traitée comme un id de scène et appelle directement `demarrerScene(resultat.suivant)` — qui ne cherche que dans `SCENES`. Le point d'**entrée** de la chaîne, lui, doit rester dans `EVENEMENTS` s'il doit sortir du tirage aléatoire (il a besoin de `poidsBase` + `condition`, propres aux événements).
+
+```js
+// Point d'entrée : dans EVENEMENTS.push(...), c'est lui qui sort au tirage aléatoire
+EVENEMENTS.push({
+  id: "tronc_mysterieux",
+  categorie: "Exploration",
+  titre: "Ce tronc, il brille non ?",
+  texte: () => `Sur le chemin de la maison, ton regard est attiré par un tronc sur le côté...`,
+  poidsBase: 3,
+  // Empêche l'événement de ressortir une fois vécu (sinon le joueur pourrait retomber
+  // dessus à l'infini et récupérer la bourse plusieurs fois) — voir j.scenesVisitees plus haut
+  condition: (j) => ((j.scenesVisitees || []).includes("tronc_mysterieux") ? 0 : 1),
+  choix: [
+    {
+      texte: "Bingo, une bourse remplie de pièces rien que pour toi.",
+      resultat: "Tu fouilles le tronc et en sors une bourse tintante de pièces.",
+      effets: { argent: 2000 },
+      suivant: "merci_al"   // 👈 pointe vers une SCÈNE, pas un autre événement
+    }
+  ]
+});
+```
+
+```js
+// Suite garantie : dans Object.assign(SCENES, {...}), jamais tirée au hasard
+Object.assign(SCENES, {
+  merci_al: {
+    categorie: "Moment de vie",
+    titre: "Merci Al",
+    texte: () => `Tu te souviens qu'Al l'alcoolique délirant avait raconté un jour avoir caché ses économies pour financer ses prochaines aventures de pirate.`,
+    choix: [
+      {
+        texte: "Tu ranges la bourse dans ta poche",
+        effets: {},
+        suivant: "arc1_veille_depart"
+      }
+    ]
+  }
+});
+```
+
+⚠️ Piège fréquent : mettre `issue: { argent: 2000 }` sur un choix. `issue` doit toujours être une **fonction** qui retourne `true`/`false` (voir "Choix à issue variable" plus bas) — pour donner un effet sans condition de réussite, c'est le champ `effets` qu'il faut utiliser, pas `issue`.
+
+### 2. Continuité conditionnelle, avec timing incertain (`joueur.flags`)
+
+Pour un cas plus souple — *"cet événement ne doit apparaître qu'après tel autre, mais je ne veux pas forcer le moment exact où il ressort"* — le chaînage direct ne suffit pas, puisqu'il n'y a plus de hasard entre les deux. C'est là qu'intervient `joueur.flags` : un objet clé-valeur libre, dans le même esprit que `objets`/`competences`/`relations`, mais pensé pour des **états narratifs** (une chaîne, un booléen, un nombre...) plutôt que des collections.
+
+**Mise en place (déjà faite dans le projet) :**
+
+1. `creation-personnage.js` déclare `flags: {}` dans l'état initial de `joueur` (voir "🧍 L'état du joueur").
+2. `appliquerEffets()` (`moteur-scenes.js`) sait lire deux nouvelles clés dans `effets` :
+
+```js
+} else if (cle === "flags") {
+  // Chaque clé de effets.flags ÉCRASE (ou crée) la valeur correspondante dans joueur.flags —
+  // pas de fusion/cumul automatique comme pour objets/competences : un flag représente un ÉTAT
+  // (ex: "dette", "regle", 3...), pas une collection.
+  if (!joueur.flags) joueur.flags = {};
+  for (const nomFlag in effets.flags) {
+    joueur.flags[nomFlag] = effets.flags[nomFlag];
+  }
+} else if (cle === "flagsRetires") {
+  // Supprime complètement une clé (plutôt que de la mettre à undefined/null), pour que
+  // `"nomFlag" in joueur.flags` redevienne franchement faux si besoin.
+  if (joueur.flags) {
+    effets.flagsRetires.forEach(nomFlag => {
+      delete joueur.flags[nomFlag];
+    });
+  }
+}
+```
+
+**Utilisation dans les données**, pour faire dépendre l'apparition d'un événement d'un flag posé par un autre :
+
+```js
+// Événement 1 : pose le flag, ne doit apparaître qu'une seule fois
+EVENEMENTS.push({
+  id: "marchand_louche_rencontre",
+  categorie: "Rencontre",
+  titre: "Un marchand aux offres trop belles",
+  texte: () => `Un homme te propose un prêt providentiel...`,
+  poidsBase: 3,
+  condition: (j) => (j.flags && j.flags.marchand_louche ? 0 : 1), // ne réapparaît plus une fois lancé
+  choix: [
+    {
+      texte: "Accepter le prêt",
+      effets: { argent: 2000, flags: { marchand_louche: "dette" } },
+      suivant: "EVENEMENT"
+    }
+  ]
+});
+
+// Événement 2 : suite, seulement possible si le flag est dans l'état attendu
+EVENEMENTS.push({
+  id: "marchand_louche_relance",
+  categorie: "Danger",
+  titre: "Le marchand vient réclamer son dû",
+  texte: () => `Tu le reconnais immédiatement...`,
+  poidsBase: 6,   // poids plus élevé pour qu'il ressorte "vite" une fois le flag posé
+  condition: (j) => (j.flags && j.flags.marchand_louche === "dette" ? 1 : 0),
+  choix: [
+    {
+      texte: "Rembourser",
+      effets: { argent: -3000, flags: { marchand_louche: "regle" } },
+      suivant: "EVENEMENT"
+    },
+    {
+      texte: "Refuser et te battre",
+      effets: { force: 1, vie: -15, flags: { marchand_louche: "regle" } },
+      suivant: "EVENEMENT"
+    }
+  ]
+});
+```
+
+Ici, l'événement 2 ne peut **jamais** sortir avant l'événement 1 (son poids reste à `0` tant que le flag n'est pas posé), et une fois le flag posé, il devient probable au prochain tirage — sans être garanti immédiatement, ce qui laisse un peu d'incertitude sur le timing tout en assurant l'ordre narratif.
+
+### 3. Confiner un événement à un arc précis
+
+`EVENEMENTS` est un **unique tableau global**, partagé par tous les fichiers d'arc (`arc1.js`, `arc2.js`...) — rien ne sépare les événements par arc dans la structure de données elle-même. Un événement déclaré dans `arc1.js` peut donc parfaitement ressortir au tirage aléatoire à l'arc 5, si son `poidsBase` n'est pas nul et que rien dans `condition` ne l'en empêche.
+
+Pour restreindre un événement à un arc donné, ajoute cette restriction directement dans `condition` — deux repères possibles :
+
+**A. `j.historique.length`** (le plus simple, rien à mettre en place — utilise une donnée qui existe déjà nativement). `historique` ne s'incrémente qu'en fin d'arc, via `avancerAge()` (voir "🎂 Système d'âge et fin de partie") : sa longueur correspond donc au nombre d'arcs **déjà terminés**, pas au numéro de l'arc en cours.
+
+| `j.historique.length` | Arc en train d'être vécu |
+|---|---|
+| `0` | Arc 1 |
+| `1` | Arc 2 |
+| `2` | Arc 3 |
+
+```js
+// Confiné à l'arc 1 uniquement
+condition: (j) => (j.historique.length === 0 ? 1 : 0)
+```
+
+Cette condition se **combine** avec le reste de la logique existante (bonus selon les stats, anti-répétition...) plutôt que de la remplacer — regroupe tout dans une seule expression :
+
+```js
+{
+  id: "petite_frappe",
+  categorie: "Danger",
+  titre: "Petite frappe en de ton village",
+  texte: () => `Tu tombes sur les 3 cancres de ton village...`,
+  poidsBase: 3,
+  // Confiné à l'arc 1 ET conserve le bonus de poids existant selon la réputation
+  condition: (j) => (j.historique.length === 0 ? (j.stats.reputation > 8 ? 2 : 1) : 0),
+  choix: [ /* ... */ ]
+},
+{
+  id: "tronc_mysterieux",
+  categorie: "Exploration",
+  titre: "Ce tronc, il brille non ?",
+  texte: () => `En marchant dans la forêt, ton regard est attiré par un tronc sur le côté...`,
+  poidsBase: 3,
+  // Confiné à l'arc 1 ET protection anti-répétition (les deux conditions combinées avec &&)
+  condition: (j) => (
+    j.historique.length === 0 && !(j.scenesVisitees || []).includes("tronc_mysterieux") ? 1 : 0
+  ),
+  choix: [ /* ... */ ]
+}
+```
+
+**B. Un `flag` posé explicitement en début d'arc** (plus verbeux à mettre en place, mais plus lisible et plus robuste si l'organisation des fichiers change un jour) :
+
+```js
+// Dans la scène d'intro de chaque arc (ex: arc3_debut dans SCENES)
+effets: { flags: { arc_courant: 3 } }
+```
+
+```js
+// Dans l'événement, restreint explicitement à l'arc 3
+condition: (j) => (j.flags && j.flags.arc_courant === 3 ? 1 : 0)
+```
+
+Les deux méthodes sont interchangeables : `historique.length` ne demande rien de plus (donnée déjà tenue à jour par le moteur), tandis que `arc_courant` nécessite de penser à poser le flag sur la scène d'intro de **chaque** arc — mais il documente explicitement "on est dans l'arc 3" au lieu d'un calcul indirect (`longueur d'historique === 2` demande de faire le +1 mentalement).
+
+### Choisir entre les deux approches
+
+| Besoin | Outil |
+|---|---|
+| Suite scénarisée qui doit s'enchaîner immédiatement, sans repasser par le hasard | Chaînage `suivant` classique, avec la suite dans `SCENES` |
+| Suite qui doit rester possible/probable seulement après tel autre événement, mais dont le moment exact peut varier | `flags` + `condition` pondérée dans `EVENEMENTS` |
+| Un événement rare qui doit être débloqué une fois pour toutes après une scène précise | déjà couvert par `j.scenesVisitees` (voir "Succès basés sur une scène ou un événement précis atteint" plus bas) |
+| Un événement qui ne doit apparaître QUE pendant un arc précis | `j.historique.length` (rapide) ou un `flag arc_courant` posé en intro d'arc (plus explicite) |
+
+Un flag peut aussi servir à des succès (`succes.js`), exactement comme `j.objets`/`j.competences` :
+
+```js
+{
+  id: "dette_reglee",
+  groupe: "Aventure",
+  nom: "Compte soldé",
+  emoji: "🤝",
+  desc: "Termine une partie après avoir réglé ta dette envers le marchand louche.",
+  condition: (j) => j.flags && j.flags.marchand_louche === "regle"
+}
+```
+
+⚠️ Comme pour `objets`/`competences`/`scenesVisitees`, la comparaison de flags est une égalité stricte : le nom du flag et sa valeur doivent être copiés-collés à l'identique entre l'endroit où ils sont posés (`effets.flags`) et l'endroit où ils sont lus (`condition`) — aucune erreur n'est levée en cas de faute de frappe, l'événement/succès concerné ne se déclenche simplement jamais.
 
 ---
 
@@ -1188,4 +1402,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout de la section "🛠️ Outils de debug" documentant `js/debug.js` (`sauterAScene`, `sauterAEvenement`, panneau visuel via `?debug=1`) — permet de tester n'importe quelle scène/événement sans rejouer toute la partie depuis le début ; et ajout de la section "🏝️ Personnaliser une fin de partie non-mortelle (`finPersonnalisee`)" (sous "Fins prématurées"), le pendant de `mortPersonnalisee` pour les fins de partie volontaires et non-mortelles (refus d'une aventure, retrait de la vie publique...), avec un `typeFin` librement personnalisable pour brancher des succès dédiés. Précédemment : ajout de la section "💊 Régénération complète (`soinComplet`)" (sous "Vie / Endurance"), un nouveau champ de choix qui remet `vie` et `endurance` à leur seuil max courant (`vieMax`/`enduranceMax`), géré par `appliquerSoinComplet()` (`moteur-scenes.js`) — utile pour une auberge, un médecin, ou toute ellipse narrative de repos, sans avoir à calculer manuellement le montant à rendre. Précédemment : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout d'une troisième sous-section "Confiner un événement à un arc précis" dans "🔗 Continuité entre événements aléatoires", qui documente que `EVENEMENTS` est un tableau global partagé par tous les arcs (rien n'empêche nativement un événement d'`arc1.js` de ressortir à l'arc 5), et propose deux repères pour restreindre un événement à un arc donné dans `condition` : `j.historique.length` (nombre d'arcs déjà terminés, disponible sans rien mettre en place) ou un `flag arc_courant` posé explicitement en intro de chaque arc (plus verbeux mais plus lisible). Précédemment : ajout de la section "🔗 Continuité entre événements aléatoires" (sous "Ajouter un événement aléatoire"), qui documente deux mécanismes complémentaires — le chaînage `suivant` classique vers une scène dédiée pour une suite garantie et immédiate (sans repasser par le tirage aléatoire), et le champ `joueur.flags` (avec `effets.flags` / `effets.flagsRetires`, gérés dans `appliquerEffets()`) pour une continuité conditionnelle où le timing exact reste incertain. `flags` a aussi été ajouté à la structure documentée de `joueur` (section "🧍 L'état du joueur"), aux côtés de `scenesVisitees` qui manquait déjà à cet exemple. Précédemment : ajout de la section "🛠️ Outils de debug" documentant `js/debug.js` (`sauterAScene`, `sauterAEvenement`, panneau visuel via `?debug=1`) — permet de tester n'importe quelle scène/événement sans rejouer toute la partie depuis le début ; et ajout de la section "🏝️ Personnaliser une fin de partie non-mortelle (`finPersonnalisee`)" (sous "Fins prématurées"), le pendant de `mortPersonnalisee` pour les fins de partie volontaires et non-mortelles (refus d'une aventure, retrait de la vie publique...), avec un `typeFin` librement personnalisable pour brancher des succès dédiés. Précédemment : ajout de la section "💊 Régénération complète (`soinComplet`)" (sous "Vie / Endurance"), un nouveau champ de choix qui remet `vie` et `endurance` à leur seuil max courant (`vieMax`/`enduranceMax`), géré par `appliquerSoinComplet()` (`moteur-scenes.js`) — utile pour une auberge, un médecin, ou toute ellipse narrative de repos, sans avoir à calculer manuellement le montant à rendre. Précédemment : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

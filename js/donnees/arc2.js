@@ -113,57 +113,57 @@ Object.assign(SCENES, {
 
 // ---------- 2. ÉVÉNEMENTS ALÉATOIRES ----------
 EVENEMENTS.push(
-    {
-        id: "arc2_marchand_ambulant",
-        categorie: "Rencontre",
-        titre: "Un marchand ambulant",
-        texte: () => `Un marchand hèle ${joueur.nom} depuis son étal improvisé sur le pont d'un quai flottant.`,
-        poidsBase: 3,
-        condition: (j) => (j.stats.argent > 5 ? 1.5 : 1),
-        choix: [
-            { texte: "Négocier quelques fournitures", effets: { argent: -3, endurance: 5 }, suivant: "arc2_epreuve" },
-            { texte: "Passer ton chemin", effets: { moral: -1 }, suivant: "arc2_epreuve" }
-        ]
-    },
-    {
-        id: "arc2_rumeur_grand_line",
-        categorie: "Moment de vie",
-        titre: "Rumeurs de Grand Line",
-        texte: () => `Dans une taverne, on murmure des histoires à propos de Grand Line — la moitié semble inventée, l'autre moitié terrifiante.`,
-        poidsBase: 2,
-        condition: (j) => (j.stats.intelligence > 6 ? 1.5 : 1),
-        choix: [
-            { texte: "Écouter attentivement et prendre des notes", effets: { intelligence: 1 }, suivant: "arc2_epreuve" },
-            { texte: "Rire de ces histoires de marins ivres", effets: { moral: 1, reputation: -1 }, suivant: "arc2_epreuve" }
-        ]
-    },
-    {
-        id: "arc2_rival_croise",
-        categorie: "Danger",
-        titre: "Un rival sur ta route",
-        texte: () => `Une silhouette familière croise le chemin de ${joueur.nom} — quelqu'un qui semble suivre la même ambition que lui.`,
-        poidsBase: 2,
-        condition: (j) => (j.stats.reputation > 5 ? 1.5 : 0.8),
-        choix: [
-            {
-                texte: "Le défier",
-                issue: (j) => j.stats.force >= 8,
-                succes: {
-                    resultat: "Tu prends l'avantage sans peine. Ta réputation grandit.",
-                    effets: { force: 1, reputation: 2 },
-                    suivant: "arc2_epreuve"
-                },
-                echec: {
-                    resultat: "Le duel tourne à ton désavantage. Une leçon d'humilité.",
-                    effets: { moral: -2, force: 1 },
-                    suivant: "arc2_epreuve"
-                }
-            },
-            {
-                texte: "Proposer une trêve, pour l'instant",
-                effets: { charisme: 1, relations: [{ nom: "Rival", statut: "Rival" }] },
-                suivant: "arc2_epreuve"
-            }
-        ]
-    }
+    // {
+    //     id: "arc2_marchand_ambulant",
+    //     categorie: "Rencontre",
+    //     titre: "Un marchand ambulant",
+    //     texte: () => `Un marchand hèle ${joueur.nom} depuis son étal improvisé sur le pont d'un quai flottant.`,
+    //     poidsBase: 3,
+    //     condition: (j) => (j.stats.argent > 5 ? 1.5 : 1),
+    //     choix: [
+    //         { texte: "Négocier quelques fournitures", effets: { argent: -3, endurance: 5 }, suivant: "arc2_epreuve" },
+    //         { texte: "Passer ton chemin", effets: { moral: -1 }, suivant: "arc2_epreuve" }
+    //     ]
+    // },
+    // {
+    //     id: "arc2_rumeur_grand_line",
+    //     categorie: "Moment de vie",
+    //     titre: "Rumeurs de Grand Line",
+    //     texte: () => `Dans une taverne, on murmure des histoires à propos de Grand Line — la moitié semble inventée, l'autre moitié terrifiante.`,
+    //     poidsBase: 2,
+    //     condition: (j) => (j.stats.intelligence > 6 ? 1.5 : 1),
+    //     choix: [
+    //         { texte: "Écouter attentivement et prendre des notes", effets: { intelligence: 1 }, suivant: "arc2_epreuve" },
+    //         { texte: "Rire de ces histoires de marins ivres", effets: { moral: 1, reputation: -1 }, suivant: "arc2_epreuve" }
+    //     ]
+    // },
+    // {
+    //     id: "arc2_rival_croise",
+    //     categorie: "Danger",
+    //     titre: "Un rival sur ta route",
+    //     texte: () => `Une silhouette familière croise le chemin de ${joueur.nom} — quelqu'un qui semble suivre la même ambition que lui.`,
+    //     poidsBase: 2,
+    //     condition: (j) => (j.stats.reputation > 5 ? 1.5 : 0.8),
+    //     choix: [
+    //         {
+    //             texte: "Le défier",
+    //             issue: (j) => j.stats.force >= 8,
+    //             succes: {
+    //                 resultat: "Tu prends l'avantage sans peine. Ta réputation grandit.",
+    //                 effets: { force: 1, reputation: 2 },
+    //                 suivant: "arc2_epreuve"
+    //             },
+    //             echec: {
+    //                 resultat: "Le duel tourne à ton désavantage. Une leçon d'humilité.",
+    //                 effets: { moral: -2, force: 1 },
+    //                 suivant: "arc2_epreuve"
+    //             }
+    //         },
+    //         {
+    //             texte: "Proposer une trêve, pour l'instant",
+    //             effets: { charisme: 1, relations: [{ nom: "Rival", statut: "Rival" }] },
+    //             suivant: "arc2_epreuve"
+    //         }
+    //     ]
+    // }
 );

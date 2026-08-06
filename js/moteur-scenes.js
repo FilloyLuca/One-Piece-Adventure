@@ -90,7 +90,7 @@ function etatChoix(choix) {
 }
 
 function raisonIndisponibilite(choix) {
-  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", observation: "👁️ Observation", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (choix.requis) {
     if (choix.requis.stats) {
@@ -124,7 +124,7 @@ function raisonIndisponibilite(choix) {
 }
 
 function raisonInterdiction(choix) {
-  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", observation: "👁️ Observation", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (choix.interdit.stats) {
     for (const stat in choix.interdit.stats) {
@@ -157,7 +157,7 @@ function raisonInterdiction(choix) {
 
 function texteConditionHTML(choix) {
   const etat = etatChoix(choix);
-  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
+  const labels = { vie: "❤️ Vie", vieMax: "❤️ Vie max", endurance: "🔋 Endurance", enduranceMax: "🔋 Endurance max", force: "💪 Force", observation: "👁️ Observation", charisme: "✨ Charisme", intelligence: "🧠 Intelligence", vitesse: "⚡ Vitesse", reputation: "🏆 Réputation", argent: "💰 Argent" };
 
   if (etat === "interdit") {
     return `<span class="choix-condition-interdit">🚫 ${raisonInterdiction(choix)}</span>`;
@@ -189,18 +189,33 @@ function classeTagCategorie(categorie) {
 }
 
 function demarrerScene(id) {
-    sceneActuelleId = id;
+  sceneActuelleId = id;
   const ficheWrapper = document.getElementById("ficheWrapper");
   if (ficheWrapper) ficheWrapper.style.display = "block";
 
   mettreAJourFiche();
 
   const scene = SCENES[id];
-  if (!scene) return;
-  // dans demarrerScene(), juste après `if (!scene) return;`
-    joueur.journalArc.push(scene.titre);
-    mettreAJourBarreProgressionArc();
+  
+  // 1. Contrôle de sécurité : si la scène n'existe pas
+  if (!scene) {
+    console.error(`La scène "${id}" n'a pas été trouvée dans SCENES !`);
+    document.getElementById("contenuJeu").innerHTML = `
+      <div class="scene-card">
+        <h2 class="scene-titre">⚠️ Scène introuvable</h2>
+        <p class="scene-texte">La scène <strong>"${id}"</strong> n'existe pas dans le jeu.</p>
+        <button class="parchment-btn" onclick="retourMenuPrincipal()">Retour au menu</button>
+      </div>`;
+    return;
+  }
 
+  // 2. Mise à jour de la progression (exécuté uniquement si la scène existe)
+  if (joueur && joueur.journalArc) {
+    joueur.journalArc.push(scene.titre);
+  }
+  mettreAJourBarreProgressionArc();
+
+  // 3. Construction et affichage du HTML de la scène
   const texte = typeof scene.texte === "function" ? scene.texte() : scene.texte;
 
   let html = `<div class="scene-card">`;
@@ -209,23 +224,23 @@ function demarrerScene(id) {
   html += `<p class="scene-texte">${texte}</p>`;
   html += `<div class="scene-choix" id="choixContainer">`;
 
-    scene.choix.forEach((choix, index) => {
-        const etat = etatChoix(choix);
-        const cliquable = (etat === "normal" || etat === "special");
-        const conditionHTML = texteConditionHTML(choix);
+  scene.choix.forEach((choix, index) => {
+    const etat = etatChoix(choix);
+    const cliquable = (etat === "normal" || etat === "special");
+    const conditionHTML = texteConditionHTML(choix);
 
-        let classeBtn = "";
-        if (etat === "indisponible") classeBtn = "choix-verrouille";
-        if (etat === "interdit") classeBtn = "choix-interdit";
-        if (etat === "special") classeBtn = "choix-special";
+    let classeBtn = "";
+    if (etat === "indisponible") classeBtn = "choix-verrouille";
+    if (etat === "interdit") classeBtn = "choix-interdit";
+    if (etat === "special") classeBtn = "choix-special";
 
-        html += `
-            <button class="parchment-strip ${classeBtn}"
-            ${cliquable ? `onclick="choisirDansScene('${id}', ${index})"` : 'disabled'}>
-            ${choix.texte}
-            ${conditionHTML}
-            </button>`;
-    });
+    html += `
+      <button class="parchment-strip ${classeBtn}"
+      ${cliquable ? `onclick="choisirDansScene('${id}', ${index})"` : 'disabled'}>
+      ${choix.texte}
+      ${conditionHTML}
+      </button>`;
+  });
 
   html += `</div></div>`;
 
@@ -455,6 +470,13 @@ function choisirDansScene(sceneId, indexChoix) {
 
 function continuerApresChoix() {
   const resultat = derniereIssue;
+  
+  // 🛡️ Sécurité : si aucun résultat n'est stocké, on annule l'exécution
+  if (!resultat) {
+    console.warn("continuerApresChoix appelé sans derniereIssue valide.");
+    return;
+  }
+
   derniereIssue = null;
 
   if (etatCritiqueAtteint()) {
@@ -463,25 +485,18 @@ function continuerApresChoix() {
   }
 
   if (resultat.finArc) {
-    // `ellipse` (optionnel) : nombre d'années à ajouter d'un coup au lieu d'une seule
-    // (ex: ellipse: 2 pour "Deux ans plus tard..."). Par défaut, avance d'un an comme avant.
     const nombreAnnees = resultat.ellipse || 1;
-    if (avancerAge(nombreAnnees)) return; // retraite déclenchée → fin de partie déjà affichée
+    if (avancerAge(nombreAnnees)) return;
     if (resultat.suivant === "FIN") {
-      finDePartie(resultat.finPersonnalisee); // fin de contenu : pas besoin d'allouer des points avant l'écran de fin
+      finDePartie(resultat.finPersonnalisee);
       return;
     }
-    // `pointsEntrainement` (optionnel) : personnalise le nombre de points à répartir
-    // pour cette fin d'arc précise (sinon, retombe sur POINTS_ENTRAINEMENT_PAR_ARC).
     demarrerAllocationPoints(resultat.suivant, resultat.pointsEntrainement);
     return;
   }
 
-  // Ellipse "libre" : un choix peut aussi faire avancer l'âge de plusieurs années
-  // SANS déclencher la fin d'arc classique ni l'écran de points d'entraînement —
-  // utile pour un saut narratif ponctuel en plein milieu d'un arc.
   if (resultat.ellipse && !resultat.finArc) {
-    if (avancerAge(resultat.ellipse)) return; // retraite déclenchée → fin de partie déjà affichée
+    if (avancerAge(resultat.ellipse)) return;
   }
 
   if (resultat.suivant === "EVENEMENT") {
@@ -606,7 +621,7 @@ function mettreAJourFiche() {
       <div>
         <strong style="font-size:1.1rem; color:#4a150e;">🏴‍☠️ ${joueur.nom || "Pirate"}</strong> ${raceHTML} ${classeHTML} ${classeFruitHTML} ${titreHTML}
         <div style="font-size:0.85rem; margin-top:3px;">
-          ❤️ ${joueur.stats.vie}/${joueur.stats.vieMax} · 🔋 ${joueur.stats.endurance}/${joueur.stats.enduranceMax} · 💪 ${joueur.stats.force} · ✨ ${joueur.stats.charisme} · 🧠 ${joueur.stats.intelligence} · ⚡ ${joueur.stats.vitesse} · 🏆 ${joueur.stats.reputation} · 💰 ${formaterBerrys(joueur.stats.argent)} · 📜 ${formaterBerrys(joueur.stats.prime)}
+          ❤️ ${joueur.stats.vie}/${joueur.stats.vieMax} · 🔋 ${joueur.stats.endurance}/${joueur.stats.enduranceMax} · 💪 ${joueur.stats.force} · 👁️ ${joueur.stats.observation} · ✨ ${joueur.stats.charisme} · 🧠 ${joueur.stats.intelligence} · ⚡ ${joueur.stats.vitesse} · 🏆 ${joueur.stats.reputation} · 💰 ${formaterBerrys(joueur.stats.argent)} · 📜 ${formaterBerrys(joueur.stats.prime)}
         </div>
       </div>
       <div style="text-align:right; font-family:'Pirata One', cursive; font-size:1.3rem; color:#4a150e;">
@@ -669,7 +684,7 @@ function afficherDetailsPersonnage() {
     <div class="log-entry">
         <span class="log-day">Statistiques</span><br>
         ❤️ Vie: ${joueur.stats.vie}/${joueur.stats.vieMax} | 🔋 Endurance: ${joueur.stats.endurance}/${joueur.stats.enduranceMax} |<br>
-        💪 Force: ${joueur.stats.force} | ✨ Charisme: ${joueur.stats.charisme} | 🧠 Intelligence: ${joueur.stats.intelligence} |<br>
+        💪 Force: ${joueur.stats.force} | 👁️ Observation: ${joueur.stats.observation} | ✨ Charisme: ${joueur.stats.charisme} | 🧠 Intelligence: ${joueur.stats.intelligence} |<br>
         ⚡ Vitesse: ${joueur.stats.vitesse} | 🏆 Réputation: ${joueur.stats.reputation} | 💰 Argent: ${formaterBerrys(joueur.stats.argent)}
     </div>
     
@@ -1055,10 +1070,13 @@ function formaterEffetsPills(effets) {
     vieMax: "❤️ Vie max",
     endurance: "🔋 Endurance",
     enduranceMax: "🔋 Endurance max",
-    force: "Force",
-    reputation: "Réputation",
-    charisme: "Charisme",
-    argent: "Argent",
+    force: "💪 Force",
+    observation: "👁️ Observation",
+    intelligence: "🧠 Intelligence",
+    vitesse: "⚡ Vitesse",
+    reputation: "🏆 Réputation",
+    charisme: "✨ Charisme",
+    argent: "💰 Argent",
     moral: "Moral"
   };
 

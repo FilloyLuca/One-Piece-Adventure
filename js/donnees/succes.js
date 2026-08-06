@@ -414,7 +414,7 @@ const SUCCES_CATALOGUE = [
         emoji: "👨‍🏫",
         desc: "Termine une partie avec au moins un maitre.",
         recompense: { pieces: 20 },
-        condition: (j) => (j.relations || []).some(r => r.statut.toLowerCase().includes("nakama"))
+        condition: (j) => (j.relations || []).some(r => r.statut.toLowerCase().includes("maitre") || r.statut.toLowerCase().includes("maître"))
     },
 
   {

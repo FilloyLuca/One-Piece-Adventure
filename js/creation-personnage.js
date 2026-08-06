@@ -189,7 +189,28 @@ const ETAPES = ["sexe", "nom", "race", "origine", "poste", "entourage", "recap"]
 
 // ---------- 3. MOTEUR D'AFFICHAGE ----------
 
+function creerJoueurVierge() {
+  return {
+    nom: "", sexe: null, age: 16,
+    classe: null, classeFruit: null, titre: null,
+    race: null, origine: null, poste: null, entourage: null,
+    stats: { vie: 100, vieMax: 100, endurance: 100, enduranceMax: 100, force: 0, observation: 0, charisme: 0, intelligence: 0, vitesse: 0, reputation: 0, argent: 1000, prime: 0 },
+    objets: [],
+    competences: [],
+    relations: [],
+    journalArc: [],
+    historique: [],
+    scenesVisitees: [],
+    flags: {}
+  };
+}
+
 function demarrerCreationPersonnage() {
+  // 🔄 Repart d'un joueur totalement vierge : sans ça, une nouvelle partie lancée
+  // sans recharger la page (ex: après "Retour au menu" en pleine partie précédente)
+  // hérite des restes de l'ancien joueur (relations, objets, stats...).
+  joueur = creerJoueurVierge();
+
   const menuPrincipal = document.getElementById("menuPrincipal");
   const jeu = document.getElementById("jeu");
   const ficheWrapper = document.getElementById("ficheWrapper");

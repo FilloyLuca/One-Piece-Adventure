@@ -8,13 +8,13 @@ Object.assign(SCENES, {
             {
                 texte: "Regarder par la fenêtre.",
                 resultat: "Archie ton meilleur ami depuis aussi longtemps que tu t'en souviennes est dehors et te fais signe de venir.",
-                effets: {relations: [{ nom: "Archie", statut: "Nakama" }]},
+                effets: {relations: [{ nom: "Archie", statut: "Allié" }]},
                 suivant: "arc1_le_meilleur_ami"
             },
             {
                 texte: "Rendors-toi et ignore le bruit.",
                 resultat: "Le bruit se fait plus fort, mais tu ne bouges pas. L'instant d'après tu vois Archie ton meilleur ami passer par ta fenêtre.",
-                effets: {relations: [{ nom: "Archie", statut: "Nakama" }]},
+                effets: {relations: [{ nom: "Archie", statut: "Allié" }]},
                 suivant: "arc1_le_meilleur_ami"
             }
         ]
@@ -68,7 +68,7 @@ Object.assign(SCENES, {
       },
       {
           texte: "C'est de l'apprehension !",
-          effets: { observation: 1, competence: ["Preventif(ve)"] },
+          effets: { observation: 1, competences: ["Preventif(ve)"] },
           suivant: "EVENEMENT"
       },
     ]
@@ -124,6 +124,7 @@ Object.assign(SCENES, {
             {
                 texte: "Profiter à fond",
                 resultat: "Archie te tends un verre rempli d'un liquide qui t'es familier.",
+                effets: {relations: [{ nom: "Archie", statut: "Nakama" }]},
                 suivant: "arc1_blackout",
             },
         ]
@@ -131,7 +132,7 @@ Object.assign(SCENES, {
     arc1_blackout: {
       categorie: "Moment de vie",
       titre:"À la nôtre !",
-      texte: () => `Le verre contient effectivement de l'alcool. Ce fameux nectar qui ne pas familier mais dont tu en a tant entendu parler.`,
+      texte: () => `Le verre contient effectivement de l'alcool.`,
         choix: [
             {
               texte: "Archie et toi sceller votre amitié , que dis-je votre fraternité pour toujours grâce à ce verre.",
@@ -143,7 +144,7 @@ Object.assign(SCENES, {
     arc1_le_depart: {
       categorie: "Destin",
       titre:"Au revoir et à bientôt ?",
-      texte: () => `Archie s'est enfuie sans toi , le bateau va partir biento^t et tu dois traverser toute l'île !`,
+      texte: () => `Archie s'est enfuie sans toi , le bateau va partir bientôt et tu dois traverser toute l'île !`,
         choix:[
           {
             texte: "Tu cours aussi vite que tu peux, ton sac sur le dos mais c'est trop tard. Arrivé au port le bateau part sans toi, tu le vois au loin.",

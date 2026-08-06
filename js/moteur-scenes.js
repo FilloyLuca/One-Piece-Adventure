@@ -1137,7 +1137,7 @@ function afficherPantheon() {
   const historique = JSON.parse(localStorage.getItem("op_pantheon") || "[]");
 
   if (historique.length === 0) {
-    contenu.innerHTML = `<p style="text-align:center; padding:20px;">Aucun pirate n'a encore écrit sa légende. Sois le premier !</p>`;
+    contenu.innerHTML = `<p style="text-align:center; padding:20px;">Aucun personnage n'a encore écrit sa légende. Sois le premier !</p>`;
   } else {
     contenu.innerHTML = historique.map((entree, index) => `
       

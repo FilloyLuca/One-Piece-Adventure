@@ -1,7 +1,20 @@
 const PLAYLIST_MUSIQUES = [
   "audio/musique1.mp3",
   "audio/musique2.mp3",
-  "audio/musique3.mp3"
+  "audio/musique3.mp3",
+  "audio/musique4.mp3",
+  "audio/musique5.mp3",
+  "audio/musique6.mp3",
+  "audio/musique7.mp3",
+  "audio/musique8.mp3",
+  "audio/musique9.mp3",
+  "audio/musique10.mp3",
+  "audio/musique11.mp3",
+  "audio/musique12.mp3",
+  "audio/musique13.mp3",
+  "audio/musique14.mp3",
+  "audio/musique15.mp3",
+  "audio/musique16.mp3"
 ];
 
 let musiqueActive = false;
@@ -27,6 +40,8 @@ function jouerMusiqueAleatoire() {
   do {
     index = Math.floor(Math.random() * PLAYLIST_MUSIQUES.length);
   } while (index === derniereMusiqueIndex && PLAYLIST_MUSIQUES.length > 1);
+
+  //  console.log("Piste choisie :", index, PLAYLIST_MUSIQUES[index]); // 👈 temporaire
 
   derniereMusiqueIndex = index;
   musique.src = PLAYLIST_MUSIQUES[index];

@@ -151,7 +151,7 @@ const NOMS_FAMILLE = [
   "Corvain", "Duskbane", "Feralta", "Grimshaw", "Halveston", "Ironwake",
   "Kestrion", "Lowtide", "Marrow", "Nightsail", "Osprey", "Ravenscar",
   "Saltborn", "Tidewell", "Vasker", "Wraithmoor", "Zephrion","Ravenscar", "Silverberg", "Vanderbilt", "Montblanc", "Donquichote", 
-  "Vinsmokin", "Gol", "Portgast", "Karozumite", "Shimoutsukine", "Neferotarsi"
+  "Vinsmokin", "Gol", "Portgast", "Karozumite", "Shimoutsukine", "Neferotarsi", "D. ick","Salad D.","Donkey D."
 ];
 
 function genererNomAleatoire(sexe) {

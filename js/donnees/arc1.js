@@ -68,7 +68,7 @@ Object.assign(SCENES, {
       },
       {
           texte: "C'est de l'apprehension !",
-          effets: { observation: 1, competences: ["Preventif(ve)"] },
+          effets: { observation: 1, competences: ["Prudent(e)"] },
           suivant: "EVENEMENT"
       },
     ]
@@ -89,32 +89,32 @@ Object.assign(SCENES, {
   },
 
   arc1_magasin: {
-  categorie: "Rencontre",
-  titre: "Panique à la boutique",
-  texte: () => `Aïe, tu te retrouves devant le marchand mais malheur, ta mère ne t'a pas donné assez d'argent. Tu te retrouves devant les deux derniers objets sur la liste, lequel prends-tu ?`,
-  choix: [
-    { 
-      texte: "Une vieille boussole qui fonctionne encore, étonnant.", 
-      effets: {
-        objets: ["Vieille boussole"],
-        objetsRetires: ["argent de poche"],
-        observation: 1,
-        intelligence: 1
+    categorie: "Rencontre",
+    titre: "Panique à la boutique",
+    texte: () => `Aïe, tu te retrouves devant le marchand mais malheur, ta mère ne t'a pas donné assez d'argent. Tu te retrouves devant les deux derniers objets sur la liste, lequel prends-tu ?`,
+    choix: [
+      { 
+        texte: "Une vieille boussole qui fonctionne encore, étonnant.", 
+        effets: {
+          objets: ["Vieille boussole"],
+          objetsRetires: ["argent de poche"],
+          observation: 1,
+          intelligence: 1
+        },
+        suivant: "arc1_veille_depart" 
       },
-      suivant: "arc1_veille_depart" 
-    },
-    {
-      texte: "Une carte tachée qui apparemment indique le chemin le plus court vers Grand Line.", 
-      effets: {
-        objets: ["Carte tachée"],
-        objetsRetires: ["argent de poche"],
-        observation: 1,
-        intelligence: 1
-      },
-      suivant: "arc1_veille_depart"
-    }
-  ]
-},
+      {
+        texte: "Une carte tachée qui apparemment indique le chemin le plus court vers Grand Line.", 
+        effets: {
+          objets: ["Carte tachée"],
+          objetsRetires: ["argent de poche"],
+          observation: 1,
+          intelligence: 1
+        },
+        suivant: "arc1_veille_depart"
+      }
+    ]
+  },
 
     arc1_veille_depart: {
         categorie: "Moment de vie",

@@ -38,7 +38,7 @@ const pagesGuide = {
       <li><strong>🏆 Réputation :</strong> Débloque du respect, des alliances... ou des ennemis mortels.</li>
       <li><strong>⚡ Vitesse :</strong> Sert à ruser, esquiver et analyser.</li>
       <li><strong>💰 Argent :</strong> Ton trésor personnel. Sert à acheter de l'équipement, payer les tavernes et négocier sur les marchés.</li>
-      <li><strong>🏴‍☠️ Prime :</strong> Ta puissance en chiffre.</li>
+      <li><strong>📜 Prime :</strong> Ta puissance en chiffre.</li>
     </ul>
     <p style="margin-top:12px; font-size:0.85rem; font-style:italic;">
       🎯 À la fin de chaque arc, tu répartis des points d'entraînement librement entre tes stats — y compris les seuils max de vie et d'endurance, pour devenir durablement plus résistant.

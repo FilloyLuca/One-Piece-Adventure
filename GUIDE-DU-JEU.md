@@ -624,7 +624,12 @@ effets: {
   objets: ["Cape de capitaine"],
 
   // Relations (ajoute ou met à jour le statut d'un personnage)
-  relations: [{ nom: "Luffy", statut: "Allié" }]
+  relations: [{ nom: "Luffy", statut: "Allié" }],
+
+  // Retraits — pendants de objets/competences/relations, voir section dédiée juste après
+  objetsRetires: ["Vieille boussole"],
+  competencesRetirees: ["Navigation basique"],
+  relationsRetirees: ["Brock"]
 }
 ```
 
@@ -639,6 +644,62 @@ finArc: true,                 // déclenche avancerAge() après ce choix
 ellipse: 2,                   // fait avancer l'âge de N années (voir "Ellipse temporelle")
 soinComplet: true             // régénère vie et endurance à leur seuil max courant (voir "💊 Régénération complète")
 ```
+
+---
+
+## ➖ Retirer un objet, une compétence ou une relation (`objetsRetires` / `competencesRetirees` / `relationsRetirees`)
+
+Par défaut, `objets` et `competences` ne savent que **ajouter** (sans doublons), et `relations` ne sait qu'**ajouter ou fusionner** une entrée existante (voir "🤝 Statuts de relation et couleurs"). Aucun de ces trois champs ne permet nativement de faire disparaître quelque chose du joueur.
+
+Trois champs dédiés existent pour ça, à utiliser dans `effets` exactement comme leurs pendants :
+
+```js
+effets: {
+  objetsRetires: ["Vieille boussole"],           // tableau de NOMS D'OBJETS à retirer
+  competencesRetirees: ["Navigation basique"],    // tableau de NOMS DE COMPÉTENCES à retirer
+  relationsRetirees: ["Brock"]                    // tableau de NOMS DE PERSONNAGES à retirer entièrement
+}
+```
+
+Gérés par `appliquerEffets()` (`moteur-scenes.js`), chacun juste après son pendant "ajout" :
+
+```js
+} else if (cle === "objetsRetires") {
+  if (!joueur.objets) joueur.objets = [];
+  effets.objetsRetires.forEach(o => {
+    joueur.objets = joueur.objets.filter(obj => obj !== o);
+  });
+} else if (cle === "competencesRetirees") {
+  if (!joueur.competences) joueur.competences = [];
+  effets.competencesRetirees.forEach(c => {
+    joueur.competences = joueur.competences.filter(comp => comp !== c);
+  });
+}
+// ...
+} else if (cle === "relationsRetirees") {
+  if (!joueur.relations) joueur.relations = [];
+  effets.relationsRetirees.forEach(nom => {
+    joueur.relations = joueur.relations.filter(r => r.nom !== nom);
+  });
+}
+```
+
+### Cas d'usage typiques
+
+- **`objetsRetires`** : un objet consommé (potion utilisée, objet vendu ou perdu), ou un objet remplacé narrativement par un autre.
+- **`competencesRetirees`** : une capacité temporaire qui expire, une malédiction levée, un pouvoir perdu suite à un événement.
+- **`relationsRetirees`** : un lien qui doit disparaître **sans laisser de trace** (personnage oublié, rupture nette, retrait d'un contact secondaire qui n'a plus lieu d'exister).
+
+### ⚠️ `relationsRetirees` vs `relations: [{ mort: true }]`
+
+Ne pas confondre les deux — ils ne racontent pas la même chose et n'ont pas le même effet :
+
+| Champ | Effet | Quand l'utiliser |
+|---|---|---|
+| `relationsRetirees: ["Brock"]` | Supprime l'entrée **complètement** de `joueur.relations` — plus aucune trace, le personnage n'apparaît plus nulle part (fiche, WANTED, succès basés sur cette relation) | Le lien doit disparaître comme s'il n'avait jamais existé |
+| `relations: [{ nom: "Brock", mort: true }]` | **Conserve** l'entrée, statut existant compris, et ajoute juste le marqueur ☠️ | Le personnage meurt mais le lien qu'on avait avec lui reste visible (voir "☠️ Marquer une relation comme décédée") |
+
+⚠️ Même règle d'orthographe stricte que partout ailleurs dans le jeu (`objets`, `competences`, `scenesVisitees`...) : le nom passé à `objetsRetires`/`competencesRetirees`/`relationsRetirees` doit correspondre **exactement** (accents, majuscules, espaces) à celui utilisé lors de l'ajout initial, sous peine de ne rien retirer du tout, silencieusement.
 
 ---
 
@@ -1402,4 +1463,4 @@ localStorage.removeItem("op_sauvegarde");
 
 ---
 
-*Dernière mise à jour de ce guide : ajout d'une troisième sous-section "Confiner un événement à un arc précis" dans "🔗 Continuité entre événements aléatoires", qui documente que `EVENEMENTS` est un tableau global partagé par tous les arcs (rien n'empêche nativement un événement d'`arc1.js` de ressortir à l'arc 5), et propose deux repères pour restreindre un événement à un arc donné dans `condition` : `j.historique.length` (nombre d'arcs déjà terminés, disponible sans rien mettre en place) ou un `flag arc_courant` posé explicitement en intro de chaque arc (plus verbeux mais plus lisible). Précédemment : ajout de la section "🔗 Continuité entre événements aléatoires" (sous "Ajouter un événement aléatoire"), qui documente deux mécanismes complémentaires — le chaînage `suivant` classique vers une scène dédiée pour une suite garantie et immédiate (sans repasser par le tirage aléatoire), et le champ `joueur.flags` (avec `effets.flags` / `effets.flagsRetires`, gérés dans `appliquerEffets()`) pour une continuité conditionnelle où le timing exact reste incertain. `flags` a aussi été ajouté à la structure documentée de `joueur` (section "🧍 L'état du joueur"), aux côtés de `scenesVisitees` qui manquait déjà à cet exemple. Précédemment : ajout de la section "🛠️ Outils de debug" documentant `js/debug.js` (`sauterAScene`, `sauterAEvenement`, panneau visuel via `?debug=1`) — permet de tester n'importe quelle scène/événement sans rejouer toute la partie depuis le début ; et ajout de la section "🏝️ Personnaliser une fin de partie non-mortelle (`finPersonnalisee`)" (sous "Fins prématurées"), le pendant de `mortPersonnalisee` pour les fins de partie volontaires et non-mortelles (refus d'une aventure, retrait de la vie publique...), avec un `typeFin` librement personnalisable pour brancher des succès dédiés. Précédemment : ajout de la section "💊 Régénération complète (`soinComplet`)" (sous "Vie / Endurance"), un nouveau champ de choix qui remet `vie` et `endurance` à leur seuil max courant (`vieMax`/`enduranceMax`), géré par `appliquerSoinComplet()` (`moteur-scenes.js`) — utile pour une auberge, un médecin, ou toute ellipse narrative de repos, sans avoir à calculer manuellement le montant à rendre. Précédemment : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*
+*Dernière mise à jour de ce guide : ajout de la section "➖ Retirer un objet, une compétence ou une relation" (sous "🏷️ Effets possibles dans un choix"), qui documente trois nouveaux champs d'`effets` — `objetsRetires`, `competencesRetirees` et `relationsRetirees` — pendants "retrait" de `objets`/`competences`/`relations` (qui ne savaient jusque-là qu'ajouter), gérés dans `appliquerEffets()` (`moteur-scenes.js`). Précise aussi la distinction entre `relationsRetirees` (suppression complète et silencieuse d'une relation) et `relations: [{ mort: true }]` (la relation meurt mais reste affichée avec un ☠️, voir "☠️ Marquer une relation comme décédée"). Précédemment : ajout d'une troisième sous-section "Confiner un événement à un arc précis" dans "🔗 Continuité entre événements aléatoires", qui documente que `EVENEMENTS` est un tableau global partagé par tous les arcs (rien n'empêche nativement un événement d'`arc1.js` de ressortir à l'arc 5), et propose deux repères pour restreindre un événement à un arc donné dans `condition` : `j.historique.length` (nombre d'arcs déjà terminés, disponible sans rien mettre en place) ou un `flag arc_courant` posé explicitement en intro de chaque arc (plus verbeux mais plus lisible). Précédemment : ajout de la section "🔗 Continuité entre événements aléatoires" (sous "Ajouter un événement aléatoire"), qui documente deux mécanismes complémentaires — le chaînage `suivant` classique vers une scène dédiée pour une suite garantie et immédiate (sans repasser par le tirage aléatoire), et le champ `joueur.flags` (avec `effets.flags` / `effets.flagsRetires`, gérés dans `appliquerEffets()`) pour une continuité conditionnelle où le timing exact reste incertain. `flags` a aussi été ajouté à la structure documentée de `joueur` (section "🧍 L'état du joueur"), aux côtés de `scenesVisitees` qui manquait déjà à cet exemple. Précédemment : ajout de la section "🛠️ Outils de debug" documentant `js/debug.js` (`sauterAScene`, `sauterAEvenement`, panneau visuel via `?debug=1`) — permet de tester n'importe quelle scène/événement sans rejouer toute la partie depuis le début ; et ajout de la section "🏝️ Personnaliser une fin de partie non-mortelle (`finPersonnalisee`)" (sous "Fins prématurées"), le pendant de `mortPersonnalisee` pour les fins de partie volontaires et non-mortelles (refus d'une aventure, retrait de la vie publique...), avec un `typeFin` librement personnalisable pour brancher des succès dédiés. Précédemment : ajout de la section "💊 Régénération complète (`soinComplet`)" (sous "Vie / Endurance"), un nouveau champ de choix qui remet `vie` et `endurance` à leur seuil max courant (`vieMax`/`enduranceMax`), géré par `appliquerSoinComplet()` (`moteur-scenes.js`) — utile pour une auberge, un médecin, ou toute ellipse narrative de repos, sans avoir à calculer manuellement le montant à rendre. Précédemment : ajout de la section "Succès basés sur une scène ou un événement précis atteint (`j.scenesVisitees`)" (sous la section Succès), qui documente le nouveau champ `joueur.scenesVisitees` — un tableau d'ids de scènes/événements traversés, alimenté automatiquement par `demarrerScene()` et `afficherEvenement()` — permettant de créer des succès de type "découverte" déclenchés par le simple fait d'atteindre une scène ou un événement précis, sans passer par une stat, un objet ou une compétence. Précédemment : ajout de la section "💀 Personnaliser le texte d'une mort précise (`mortPersonnalisee`)" (sous "Fins prématurées"), qui permet à un choix de remplacer le titre/la raison génériques d'une mort par `vie <= 0` par un texte narratif sur mesure, sans affecter `typeFin` ni les succès associés. Précédemment : sections "Succès basés sur un objet, une compétence ou une relation précise" et "Succès basés sur une stat numérique (`j.stats`)" (piège de la désynchronisation entre `desc` et `condition`, cas particulier des relations avec `.find()`), pagination interne des pages du Guide (`GUIDE_SEPARATEUR`, boutons "Suite →" / "← Retour"), ellipse temporelle (`avancerAge(nombreAnnees)` + champ `ellipse`), nombre de points d'entraînement personnalisable par fin d'arc (`pointsEntrainement`), système de hasard pondéré pour les choix à issue (`tirageProbabiliste`), compteur de succès débloqués/total, distinction succès décoratifs vs récompensés, système de déblocage d'objets Boutique via succès, et commandes de réinitialisation détaillées par clé `localStorage`.*

@@ -519,10 +519,20 @@ function appliquerEffets(effets) {
       effets.competences.forEach(c => {
         if (!joueur.competences.includes(c)) joueur.competences.push(c);
       });
+    } else if (cle === "competencesRetirees") {
+      if (!joueur.competences) joueur.competences = [];
+      effets.competencesRetirees.forEach(c => {
+        joueur.competences = joueur.competences.filter(comp => comp !== c);
+      });
     } else if (cle === "objets") {
       if (!joueur.objets) joueur.objets = [];
       effets.objets.forEach(o => {
         if (!joueur.objets.includes(o)) joueur.objets.push(o);
+      });
+    } else if (cle === "objetsRetires") {
+      if (!joueur.objets) joueur.objets = [];
+      effets.objetsRetires.forEach(o => {
+        joueur.objets = joueur.objets.filter(obj => obj !== o);
       });
     } else if (cle === "relations") {
         if (!joueur.relations) joueur.relations = [];
@@ -534,16 +544,20 @@ function appliquerEffets(effets) {
             joueur.relations.push({ ...r });
           }
       });
+    } else if (cle === "relationsRetirees") {
+      // Supprime complètement la relation (contrairement à `mort: true`, qui la
+      // conserve avec un marqueur ☠️). À utiliser pour un lien qui doit disparaître
+      // sans laisser de trace (ex: un personnage oublié, une rupture nette).
+      if (!joueur.relations) joueur.relations = [];
+      effets.relationsRetirees.forEach(nom => {
+        joueur.relations = joueur.relations.filter(r => r.nom !== nom);
+      });
     } else if (cle === "vieMax" || cle === "enduranceMax") {
-      // Modifie le SEUIL MAXIMUM (ex: blessure permanente qui réduit la vie max,
-      // entraînement qui l'augmente...). Un gain de seuil relève aussi la valeur
-      // actuelle d'autant (comme un vrai regain de vitalité) ; une perte de seuil
-      // ne fait que brider la valeur actuelle si elle dépassait le nouveau plafond.
       const cleActuelle = cle === "vieMax" ? "vie" : "endurance";
       const delta = effets[cle];
 
       joueur.stats[cle] = (joueur.stats[cle] || 0) + delta;
-      if (joueur.stats[cle] < 1) joueur.stats[cle] = 1; // jamais de seuil max nul ou négatif
+      if (joueur.stats[cle] < 1) joueur.stats[cle] = 1;
 
       if (delta > 0) {
         joueur.stats[cleActuelle] = (joueur.stats[cleActuelle] || 0) + delta;
@@ -551,8 +565,6 @@ function appliquerEffets(effets) {
         joueur.stats[cleActuelle] = joueur.stats[cle];
       }
     } else if (cle === "vie" || cle === "endurance") {
-      // Modifie la valeur ACTUELLE uniquement (dégâts, soins ponctuels...), plafonnée
-      // par le seuil max courant du joueur (et non plus 100 en dur).
       const max = joueur.stats[cle + "Max"];
       joueur.stats[cle] = (joueur.stats[cle] || 0) + effets[cle];
       if (typeof max === "number" && joueur.stats[cle] > max) {
@@ -1077,7 +1089,7 @@ function formaterEffetsPills(effets) {
     reputation: "🏆 Réputation",
     charisme: "✨ Charisme",
     argent: "💰 Argent",
-    moral: "Moral"
+    prime: "📜 Prime"
   };
 
   const pills = [];
@@ -1085,16 +1097,24 @@ function formaterEffetsPills(effets) {
   for (const cle in effets) {
     if (cle === "competences") {
       effets.competences.forEach(c => pills.push(`<span class="effet-pill effet-competence">🧠 ${c}</span>`));
+    } else if (cle === "competencesRetirees") {
+      effets.competencesRetirees.forEach(c => pills.push(`<span class="effet-pill effet-negatif">🧠❌ ${c}</span>`));
+    } else if (cle === "objets") {
+      effets.objets.forEach(o => pills.push(`<span class="effet-pill effet-competence">🎒 ${o}</span>`));
+    } else if (cle === "objetsRetires") {
+      effets.objetsRetires.forEach(o => pills.push(`<span class="effet-pill effet-negatif">🎒❌ ${o}</span>`));
     } else if (cle === "relations") {
       effets.relations.forEach(r => {
         const marqueurMort = r.mort ? " ☠️" : "";
         const statutAffiche = r.statut ? `${r.statut}${marqueurMort}` : "☠️ Décédé";
         pills.push(`<span class="effet-pill effet-relation">🤝 ${r.nom} : ${statutAffiche}</span>`);
       });
+    } else if (cle === "relationsRetirees") {
+      effets.relationsRetirees.forEach(nom => pills.push(`<span class="effet-pill effet-negatif">🤝❌ ${nom}</span>`));
     } else if (labels[cle]) {
       const valeur = effets[cle];
       const signe = valeur >= 0 ? "+" : "-";
-      const montant = cle === "argent" ? formaterBerrys(Math.abs(valeur)) : Math.abs(valeur);
+      const montant = (cle === "argent" || cle === "prime") ? formaterBerrys(Math.abs(valeur)) : Math.abs(valeur);
       const classe = valeur >= 0 ? "effet-positif" : "effet-negatif";
       pills.push(`<span class="effet-pill ${classe}">${labels[cle]} ${signe}${montant}</span>`);
     }

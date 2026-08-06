@@ -1,169 +1,121 @@
 // ---------- 1. BANQUE DE SCÈNES (arc 2) ----------
 Object.assign(SCENES, {
 
-    // Scène commune, point d'entrée de l'arc 2 (visée par arc1_choix_destin dans arc1.js)
+    // Scène commune, point d'entrée de l'arc 2 
     arc2_enMer: {
         categorie: "Moment de vie",
         titre: "Le grand large",
-        texte: () => {
-            const textesParClasse = {
-                pirate: `${joueur.nom} largue les amarres, pavillon noir hissé au vent. Personne à bord si ce n'est ses propres ambitions.`,
-                marine: `${joueur.nom} embarque sur un navire de guerre, l'uniforme encore raide sur ses épaules. La discipline commence maintenant.`,
-                revolutionnaire: `${joueur.nom} rejoint un contact discret sur les quais. L'Armée Révolutionnaire ne recrute pas n'importe qui.`
-            };
-            return textesParClasse[joueur.classe] || `${joueur.nom} prend la mer, prêt à écrire la suite de son histoire.`;
-        },
+        texte: () => `
+            Voila maintenant peut être 2 semaines que tu es en mer ou peut être 3. Impossible de savoir. 
+            Fort heuresement l'objet acheter dans la boutique s'avoue être d'une grande aide.
+        `,
         choix: [
             {
-                texte: "Continuer",
-                effets: {},
-                suivant: "AIGUILLAGE_CLASSE"
+                texte: "Faire une sieste, la route est toute tracée. Droit devant",
+                interdit: {competence: "Prudent(e)"},
+                effets: {enduranceMax: 2, endurance: 5},
+                suivant: "arc2_drôle_de_rencontre"
+            },
+            {
+                texte: "Rester eveillé tout du long. On ne sait jamais ce qui peux arriver en mer.",
+                effets: {intelligence: 2},
+                suivant: "EVENEMENT"
+
             }
         ]
     },
 
-    // ---------- Intros spécifiques par classe ----------
-    arc2_pirate_intro: {
+    arc2_drôle_de_rencontre: {
         categorie: "Rencontre",
-        titre: "Premiers pas de pirate",
-        texte: () => `Sans capitaine ni équipage fixe, ${joueur.nom} doit se faire un nom sur les mers d'East Blue avant d'espérer atteindre Grand Line.`,
+        titre: "L'homme dans un baril",
+        texte: ()=> `
+            Tu te reveille par le bruit que ton bateau fait en accostant sur une île. 
+            Problème cette île n'est pas celle que tu recherches.
+        `,
         choix: [
             {
-                texte: "Chercher à recruter un équipage",
-                effets: { charisme: 1, competences: ["Meneur d'hommes"] },
-                suivant: "EVENEMENT"
+                texte: "Tu repars , il n'y a pas de temps à perdre pour retrouver Archie.",
+                resultat: "Tu entends quelqu'un surgir des buissons derriere toi. En te retournant tu aperçois un petit homme surmonté d'un coiffure afro coincé dans un baril.",
+                suivant: "arc2_un_homme_en_detresse"
             },
             {
-                texte: "Naviguer seul, plus rapide et plus discret",
-                effets: { vitesse: 1, reputation: -1 },
-                suivant: "EVENEMENT"
+                texte: "Tu fouilles les buissons , il n'y a pas de mal à vouloir goûter des fruits d'une autre île.",
+                resultat: "En t'approchant des buissons , un petit homme surmonté d'un coiffure afro coincé dans un baril te saute dessus.",
+                suivant: "arc2_un_homme_en_detresse"
             }
-        ]
-    },
+        ],
 
-    arc2_marine_intro: {
+    },
+    arc2_un_homme_en_detresse: {
         categorie: "Rencontre",
-        titre: "Premiers pas dans la Marine",
-        texte: () => `${joueur.nom} est affecté à une base d'East Blue, sous les ordres d'un capitaine peu commode.`,
+        titre: "L'homme dans un baril",
+        texte: () => `
+            L'homme se présente sous le nom de Brock et s'excuse de cette frayeur, mais t'explique que cela fait plus de 5 ans que son bateau a coulé et qu'il s'est retrouvé coincé dans ce baril en essayant d'échapper à la tempête.
+            Il te demande de l'aide pour l'extirper de son baril.
+        `,
         choix: [
             {
-                texte: "Obéir sans discuter, gravir les échelons",
-                effets: { reputation: 2, moral: -1 },
-                suivant: "EVENEMENT"
+            texte: "Je vais l'aider.",
+            issue: (j) => j.stats.force >= 8,
+            succes: {
+                resultat: "D'un seul geste, tu arraches les planches et libères Brock de son baril. Des bourses pleuvent autour de vous , en reprenant ses esprits, Brock, ton nouvel ami, te remercie et t'offre une bourse en guise de remerciement. Tu reprends la mer l'esprit tranquille après que ton nouvel ami soit reparti lui aussi à bord de sa barque.",
+                effets: { force: 2, endurance: -5, reputation: 2, argent: 3000, relations: [{ nom: "Brock", statut: "allié" }] },
+                suivant: "arc2_premiere_ile"
+            },
+            echec: {
+                resultat: "Tu tires de toutes tes forces, mais le baril reste coincé. Tu tribuches tu te tapes le crane contre le sol et fais voler Brock. En atterrisant une pluie de bourses s'abat sur vous,en reprenant ses esprits, Brock, ton nouvel ami, te remercie et t'offre une bourse en guise de remerciement. Tu reprends la mer l'esprit tranquille mais le crâne en miette après que ton nouvel ami soit reparti lui aussi à bord de sa barque.",
+                effets: { force: 1, endurance: -5, vie: -5, argent: 3000, relations: [{ nom: "Brock", statut: "allié" }] },
+                suivant: "arc2_premiere_ile"
+            }
             },
             {
-                texte: "Questionner les méthodes de ta hiérarchie",
-                effets: { intelligence: 1, reputation: -1 },
-                suivant: "EVENEMENT"
+                texte: "Hors question de l'aider !",
+                resultat: "Tu met une droite de toute tes forces dans le ventre de cette homme pour le temps perdu. Le baril explose en mille morceaux et une pluie de bourse tombe. Tu les rammasse toutes et reprend la mer.",
+                effets: {argent: 20000, reputation: -3, relations: [{ nom: "Brock", statut: "ennemi" }]},
+                suivant: "arc2_premiere_ile"
             }
         ]
     },
 
-    arc2_revolutionnaire_intro: {
-        categorie: "Rencontre",
-        titre: "Premiers pas dans l'ombre",
-        texte: () => `${joueur.nom} découvre le fonctionnement clandestin de l'Armée Révolutionnaire : cellules isolées, informations cloisonnées.`,
-        choix: [
-            {
-                texte: "Gagner la confiance de ta cellule",
-                effets: { charisme: 1, competences: ["Discrétion"] },
-                suivant: "EVENEMENT"
-            },
-            {
-                texte: "Agir en électron libre, quitte à prendre des risques",
-                effets: { force: 1, reputation: 1 },
-                suivant: "EVENEMENT"
-            }
-        ]
-    },
+    arc2_premiere_ile: {
+    categorie: "Exploration",
+    titre: "Une île à l'horizon",
+    texte: () => `Tu aperçois enfin une île qui pourrait être celle que tu cherches...`,
+    choix: [
+        {
+            texte: "Accoster",
+            effets: {},
+            suivant: "EVENEMENT" // suite à écrire
+        }
+    ]
+},
 
-    // ---------- Scène de convergence ----------
-    arc2_epreuve: {
-        categorie: "Danger",
-        titre: "Une épreuve inattendue",
-        texte: () => `Quoi que ${joueur.nom} ait choisi jusqu'ici, la mer se charge de tester sa résolution.`,
-        choix: [
-            {
-                texte: "Faire face avec détermination",
-                effets: { force: 1, moral: -1 },
-                suivant: "arc2_conclusion"
-            },
-            {
-                texte: "Ruser pour s'en sortir sans heurts",
-                effets: { intelligence: 1, moral: 1 },
-                suivant: "arc2_conclusion"
-            }
-        ]
-    },
-
-    arc2_conclusion: {
-        categorie: "Destin",
-        titre: "Une nouvelle étape franchie",
-        texte: () => `${joueur.nom} sent que quelque chose a changé en lui. La prochaine étape s'annonce plus vaste encore.`,
-        choix: [
-            {
-                texte: "Poursuivre l'aventure",
-                effets: {},
-                suivant: "FIN" , finArc: true
-            }
-        ]
-    }
+    
 
 });
 
 // ---------- 2. ÉVÉNEMENTS ALÉATOIRES ----------
 EVENEMENTS.push(
-    // {
-    //     id: "arc2_marchand_ambulant",
-    //     categorie: "Rencontre",
-    //     titre: "Un marchand ambulant",
-    //     texte: () => `Un marchand hèle ${joueur.nom} depuis son étal improvisé sur le pont d'un quai flottant.`,
-    //     poidsBase: 3,
-    //     condition: (j) => (j.stats.argent > 5 ? 1.5 : 1),
-    //     choix: [
-    //         { texte: "Négocier quelques fournitures", effets: { argent: -3, endurance: 5 }, suivant: "arc2_epreuve" },
-    //         { texte: "Passer ton chemin", effets: { moral: -1 }, suivant: "arc2_epreuve" }
-    //     ]
-    // },
-    // {
-    //     id: "arc2_rumeur_grand_line",
-    //     categorie: "Moment de vie",
-    //     titre: "Rumeurs de Grand Line",
-    //     texte: () => `Dans une taverne, on murmure des histoires à propos de Grand Line — la moitié semble inventée, l'autre moitié terrifiante.`,
-    //     poidsBase: 2,
-    //     condition: (j) => (j.stats.intelligence > 6 ? 1.5 : 1),
-    //     choix: [
-    //         { texte: "Écouter attentivement et prendre des notes", effets: { intelligence: 1 }, suivant: "arc2_epreuve" },
-    //         { texte: "Rire de ces histoires de marins ivres", effets: { moral: 1, reputation: -1 }, suivant: "arc2_epreuve" }
-    //     ]
-    // },
-    // {
-    //     id: "arc2_rival_croise",
-    //     categorie: "Danger",
-    //     titre: "Un rival sur ta route",
-    //     texte: () => `Une silhouette familière croise le chemin de ${joueur.nom} — quelqu'un qui semble suivre la même ambition que lui.`,
-    //     poidsBase: 2,
-    //     condition: (j) => (j.stats.reputation > 5 ? 1.5 : 0.8),
-    //     choix: [
-    //         {
-    //             texte: "Le défier",
-    //             issue: (j) => j.stats.force >= 8,
-    //             succes: {
-    //                 resultat: "Tu prends l'avantage sans peine. Ta réputation grandit.",
-    //                 effets: { force: 1, reputation: 2 },
-    //                 suivant: "arc2_epreuve"
-    //             },
-    //             echec: {
-    //                 resultat: "Le duel tourne à ton désavantage. Une leçon d'humilité.",
-    //                 effets: { moral: -2, force: 1 },
-    //                 suivant: "arc2_epreuve"
-    //             }
-    //         },
-    //         {
-    //             texte: "Proposer une trêve, pour l'instant",
-    //             effets: { charisme: 1, relations: [{ nom: "Rival", statut: "Rival" }] },
-    //             suivant: "arc2_epreuve"
-    //         }
-    //     ]
-    // }
+    {
+        id: "arc2_le_blues_de_mer",
+        categorie: "Moment de vie",
+        titre: "La mer est calme",
+        texte: () => `Tu sens que tu arrives bientôt , ou pas. Une chose et sûre c'est que tu t'ennuies.`,
+        poidsBase: 3,                 // 👈 rareté , Un événement avec poidsBase: 6 sort deux fois plus souvent qu'un événement à poidsBase: 3
+        condition: (j) => (j.historique.length === 1 ? 1 : 0),  // 👈 uniquement pendant l'arc 2
+        choix: [
+            { 
+                texte: "Tu cris de toutde tes forces à la mer.", 
+                resultat: "Tu sens ta force intérieur grandir.",
+                effets: { force: 2, endurance: -1 },
+                suivant: "arc2_premiere_ile" 
+            },
+            { 
+                texte: "Tu essaye de faire des ricocher sur l'eau.",
+                resultat: "Tu te sens que l'execution de tes mouvements est plus rapide.", 
+                effets: { vitesse: 2, endurance: -1 }, 
+                suivant: "arc2_premiere_ile" 
+            }
+        ]
+    },
 );

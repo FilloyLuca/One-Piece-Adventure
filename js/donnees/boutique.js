@@ -14,7 +14,7 @@ const BOUTIQUE_CATALOGUE = [
     emoji: "⚔️",
     desc: "Une lame de qualité, prête à en découdre dès le premier jour. (+3 Force)",
     prix: 100,
-    effets: { objet: ["Sabre aiguisé"], force: 3 }
+    effets: { objets: ["Sabre aiguisé"], force: 3 }
   },
   {
     id: "amulette_charisme",
@@ -22,7 +22,7 @@ const BOUTIQUE_CATALOGUE = [
     emoji: "🧿",
     desc: "Elle attire la sympathie... et parfois la chance. (+2 Charisme)",
     prix: 60,
-    effets: { objet: ["Amulette porte bonheur"], charisme: 2 }
+    effets: { objets: ["Amulette porte bonheur"], charisme: 2 }
   },
   {
     id: "bourse_garnie",
@@ -36,7 +36,7 @@ const BOUTIQUE_CATALOGUE = [
     id: "carte_ancienne",
     nom: "Carte au Trésor Ancienne",
     emoji: "🗺️",
-    desc: "Un vieux parchemin qui pourrait bien mener à un trésor oublié. (+1 Objet)",
+    desc: "Un vieux parchemin qui pourrait bien mener à un trésor oublié.",
     prix: 80,
     effets: { objets: ["Carte au Trésor Ancienne"] }
   },
@@ -44,7 +44,7 @@ const BOUTIQUE_CATALOGUE = [
     id: "log_pose",
     nom: "Vieux Log Pose",
     emoji: "🧭",
-    desc: "Un compas usé mais fiable, qui a déjà traversé bien des tempêtes. (+1 Objet, +10 Endurance)",
+    desc: "Un compas usé mais fiable, qui a déjà traversé bien des tempêtes. (+10 Endurance)",
     prix: 120,
     effets: { objets: ["Vieux Log Pose"], enduranceMax: 10 }
   },
@@ -62,7 +62,7 @@ const BOUTIQUE_CATALOGUE = [
     emoji: "🧥",
     desc: "Une cape légendaire, réservée à ceux qui ont prouvé leur valeur. (+5 Charisme, +5 Réputation)",
     prix: 250,
-    effets: { objets: ["Cape du Roi des Pirates"], charisme: 5, reputation: 5 },
+    effets: { objets: ["Cape du Roi des Pirates"], charisme: 100, reputation: 100 },
     deblocage: { succes: "legende_pirate" }   // 👈 caché/verrouillé tant que ce succès n'est pas obtenu
   }
 ];

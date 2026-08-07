@@ -77,6 +77,7 @@ let joueur = {
     endurance: 100,
     enduranceMax: 100,     // seuil maximum d'endurance
     force: 5,
+    observation: 5,
     charisme: 5,
     intelligence: 5,
     vitesse: 5,

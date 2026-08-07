@@ -90,8 +90,14 @@ Ce guide est le point de référence pour comprendre et étendre le jeu — à c
 
 - Arcs suivants (2, 3, ...), avec personnalisation par classe (voir le guide, section "Personnaliser l'histoire selon la classe").
 - Succès secrets (masquer nom/description tant qu'ils ne sont pas débloqués).
-- Système multi-appareils pour la sauvegarde (nécessiterait un backend).
 - Retirer `js/debug.js` de `index.html` avant tout déploiement public (voir GUIDE-DU-JEU.md, section "Outils de debug").
+- Ajouts de modes/d'autres histoires de jeux pour matcher les envies Disponible grâce à une liste affihcer après avoir cliquer sur commencer aventures
+- Histoire qui commence et se deroule differement en fonction du lieu de départ (ex: Grand Line) etc 
+- Histoire de One piec (Luffy ou autre personnage)
+- Possibilite de passer les musiques à sa guise grâce
+- Declenchement de theme musicaux suivant la categorie de l'evenement (ex: Action -> musique d'action, etc )
+- Créer des classe pour les objets (exp: Classe navigation regroupe les objets comme "Bousole ...","Carte ...", etc). Permettant ainsi de rendre les objets de la boutique utile dans l'histoire ou permettant ainsi de mon s'embeter avec les nom des objets etc.
+- Créer des choix en lien avec la race, le poste, l'entourage et l'origine du joueur pour rendre les choix plus impactants
 
 ---
 

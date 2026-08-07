@@ -29,20 +29,25 @@ const pagesGuide = {
       <li><strong>❤️ Vie :</strong> Affichée en <em>actuel/max</em> (ex: 80/100). Ne la laisse pas tomber à zéro ! Le seuil max peut grandir avec l'entraînement ou certains événements — et parfois aussi diminuer, suite à une blessure grave.</li> <br>
       <li><strong>🔋 Endurance :</strong> Affichée en <em>actuel/max</em> elle aussi. Ne la laisse pas tomber trop bas ! Comme la vie, son seuil max peut évoluer au fil de l'aventure.</li> <br>
       <li><strong>💪 Force :</strong> Détermine ta puissance en combat direct.</li>
-      <li><strong>✨ Charisme :</strong> Ton aura, ce que tu dégages.</li>
     </ul>
     ${GUIDE_SEPARATEUR}
     <h2 class="book-title">⚔️ Les Stats (suite)</h2>
     <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
+      <li><strong>👁️ Observation :</strong> Ne manque pas les détails,les esquives, les points faibles de tes adversaires.</li>
+      <li><strong>✨ Charisme :</strong> Ton aura, ce que tu dégages.</li>
       <li><strong>🧠 Intelligence :</strong> Sert à ruser et analyser.</li>
       <li><strong>🏆 Réputation :</strong> Débloque du respect, des alliances... ou des ennemis mortels.</li>
       <li><strong>⚡ Vitesse :</strong> Sert à ruser, esquiver et analyser.</li>
+    </ul>
+    ${GUIDE_SEPARATEUR}
+    <h2 class="book-title">⚔️ Les Stats (suite)</h2>
+    <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
       <li><strong>💰 Argent :</strong> Ton trésor personnel. Sert à acheter de l'équipement, payer les tavernes et négocier sur les marchés.</li>
       <li><strong>📜 Prime :</strong> Ta puissance en chiffre.</li>
+      <p style="margin-top:12px; font-size:0.85rem; font-style:italic;">
+        🎯 À la fin de chaque arc, tu répartis des points d'entraînement librement entre tes stats — y compris les seuils max de vie et d'endurance, pour devenir durablement plus résistant.
+      </p>
     </ul>
-    <p style="margin-top:12px; font-size:0.85rem; font-style:italic;">
-      🎯 À la fin de chaque arc, tu répartis des points d'entraînement librement entre tes stats — y compris les seuils max de vie et d'endurance, pour devenir durablement plus résistant.
-    </p>
   `,
   4: `
     <h2 class="book-title">🏆 Le Panthéon</h2>
@@ -52,9 +57,9 @@ const pagesGuide = {
     </ul>
   `,
   5: `
-    <h2 class="book-title">👑 Les Succès</h2>
+    <h2 class="book-title">🏅 Les Succès</h2>
     <ul style="padding-left:15px; font-size:0.95rem; line-height:1.5;">
-      <li><strong>👑 Succès :</strong> Obtenez des distinctions pour vos accomplissements au cours de votre aventure.</li> <br>
+      <li><strong>🏅 Succès :</strong> Obtenez des distinctions pour vos accomplissements au cours de votre aventure.</li> <br>
       <li><strong>Certains succès débloquent des objets à acheter dans la boutique par la suite.</strong></li>
     </ul>
   `

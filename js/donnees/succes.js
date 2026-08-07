@@ -237,6 +237,7 @@ const SUCCES_CATALOGUE = [
   },
 
   // ---------- Groupe : Statistiques ----------
+  // ---------- ❤️ Vie max ----------
   {
     id: "statistiques_vie_150",
     groupe: "Statistiques",
@@ -246,60 +247,38 @@ const SUCCES_CATALOGUE = [
     condition: (j) => j.stats.vieMax >= 150
   },
   {
-    id: "statistiques_endurance_150",
-    groupe: "Statistiques",
-    nom: "Bien vivant",
-    emoji: "🔋",
-    desc: "Termine une partie avec une endurance max d'au moins 150.",
-    condition: (j) => j.stats.enduranceMax >= 150
-  },
-  {
-    id: "statistiques_force_50",
-    groupe: "Statistiques",
-    nom: "Gonflette",
-    emoji: "💪",
-    desc: "Termine une partie avec une force d'au moins 50.",
-    condition: (j) => j.stats.vie >= 50
-  },
-  {
-    id: "statistiques_charisme_50",
-    groupe: "Statistiques",
-    nom: "Charmeur(euse)",
-    emoji: "✨",
-    desc: "Termine une partie avec un charisme d'au moins 50.",
-    condition: (j) => j.stats.charisme >= 50
-  },
-  {
-    id: "statistiques_intelligence_50",
-    groupe: "Statistiques",
-    nom: "Petit(e) futé(e)",
-    emoji: "🧠",
-    desc: "Termine une partie avec une intelligence d'au moins 50.",
-    condition: (j) => j.stats.intelligence >= 50
-  },
-  {
-    id: "statistiques_vitesse_50",
-    groupe: "Statistiques",
-    nom: "Pile électrique",
-    emoji: "⚡",
-    desc: "Termine une partie avec une vitesse d'au moins 50.",
-    condition: (j) => j.stats.vitesse >= 50
-  },
-  {
-    id: "statistiques_reputation_50",
-    groupe: "Statistiques",
-    nom: "Célèbrité",
-    emoji: "🏆",
-    desc: "Termine une partie avec une reputation d'au moins 50.",
-    condition: (j) => j.stats.reputation >= 50
-  },
-    {
     id: "statistiques_vie_200",
     groupe: "Statistiques",
     nom: "Intuable",
     emoji: "❤️❤️",
     desc: "Termine une partie avec une vie max d'au moins 200.",
     condition: (j) => j.stats.vieMax >= 200
+  },
+  {
+    id: "statistiques_vie_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu de la vie",
+    emoji: "❤️❤️❤️",
+    desc: "Termine une partie avec une vie max d'au moins 500.",
+    condition: (j) => j.stats.vieMax >= 500
+  },
+  {
+    id: "statistiques_vie_1000",
+    groupe: "Statistiques",
+    nom: "Dieu de la vie",
+    emoji: "❤️❤️❤️❤️",
+    desc: "Termine une partie avec une vie max d'au moins 1000.",
+    condition: (j) => j.stats.vieMax >= 1000
+  },
+
+  // ---------- 🔋 Endurance max ----------
+  {
+    id: "statistiques_endurance_150",
+    groupe: "Statistiques",
+    nom: "Bien vivant",
+    emoji: "🔋",
+    desc: "Termine une partie avec une endurance max d'au moins 150.",
+    condition: (j) => j.stats.enduranceMax >= 150
   },
   {
     id: "statistiques_endurance_200",
@@ -310,12 +289,98 @@ const SUCCES_CATALOGUE = [
     condition: (j) => j.stats.enduranceMax >= 200
   },
   {
+    id: "statistiques_endurance_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu de l'endurance",
+    emoji: "🔋🔋🔋",
+    desc: "Termine une partie avec une endurance max d'au moins 500.",
+    condition: (j) => j.stats.enduranceMax >= 500
+  },
+  {
+    id: "statistiques_endurance_1000",
+    groupe: "Statistiques",
+    nom: "Dieu de l'endurance",
+    emoji: "🔋🔋🔋🔋",
+    desc: "Termine une partie avec une endurance max d'au moins 1000.",
+    condition: (j) => j.stats.enduranceMax >= 1000
+  },
+
+  // ---------- 💪 Force ----------
+  {
+    id: "statistiques_force_50",
+    groupe: "Statistiques",
+    nom: "Gonflette",
+    emoji: "💪",
+    desc: "Termine une partie avec une force d'au moins 50.",
+    condition: (j) => j.stats.force >= 50
+  },
+  {
     id: "statistiques_force_100",
     groupe: "Statistiques",
     nom: "Surhumain(e)",
     emoji: "💪💪",
     desc: "Termine une partie avec une force d'au moins 100.",
-    condition: (j) => j.stats.vie >= 100
+    condition: (j) => j.stats.force >= 100
+  },
+  {
+    id: "statistiques_force_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu de la force",
+    emoji: "💪💪💪",
+    desc: "Termine une partie avec une force d'au moins 500.",
+    condition: (j) => j.stats.force >= 500
+  },
+  {
+    id: "statistiques_force_1000",
+    groupe: "Statistiques",
+    nom: "Dieu de la force",
+    emoji: "💪💪💪💪",
+    desc: "Termine une partie avec une force d'au moins 1000.",
+    condition: (j) => j.stats.force >= 1000
+  },
+
+  // ---------- 👁️ Observation ----------
+  {
+    id: "statistiques_observation_50",
+    groupe: "Statistiques",
+    nom: "Œil aiguisé",
+    emoji: "👁️",
+    desc: "Termine une partie avec une observation d'au moins 50.",
+    condition: (j) => j.stats.observation >= 50
+  },
+  {
+    id: "statistiques_observation_100",
+    groupe: "Statistiques",
+    nom: "Vision perçante",
+    emoji: "👁️👁️",
+    desc: "Termine une partie avec une observation d'au moins 100.",
+    condition: (j) => j.stats.observation >= 100
+  },
+  {
+    id: "statistiques_observation_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu de l'observation",
+    emoji: "👁️👁️👁️",
+    desc: "Termine une partie avec une observation d'au moins 500.",
+    condition: (j) => j.stats.observation >= 500
+  },
+  {
+    id: "statistiques_observation_1000",
+    groupe: "Statistiques",
+    nom: "Dieu de l'observation",
+    emoji: "👁️👁️👁️👁️",
+    desc: "Termine une partie avec une observation d'au moins 1000.",
+    condition: (j) => j.stats.observation >= 1000
+  },
+
+  // ---------- ✨ Charisme ----------
+  {
+    id: "statistiques_charisme_50",
+    groupe: "Statistiques",
+    nom: "Charmeur(euse)",
+    emoji: "✨",
+    desc: "Termine une partie avec un charisme d'au moins 50.",
+    condition: (j) => j.stats.charisme >= 50
   },
   {
     id: "statistiques_charisme_100",
@@ -326,12 +391,64 @@ const SUCCES_CATALOGUE = [
     condition: (j) => j.stats.charisme >= 100
   },
   {
+    id: "statistiques_charisme_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu du charisme",
+    emoji: "✨✨✨",
+    desc: "Termine une partie avec un charisme d'au moins 500.",
+    condition: (j) => j.stats.charisme >= 500
+  },
+  {
+    id: "statistiques_charisme_1000",
+    groupe: "Statistiques",
+    nom: "Dieu du charisme",
+    emoji: "✨✨✨✨",
+    desc: "Termine une partie avec un charisme d'au moins 1000.",
+    condition: (j) => j.stats.charisme >= 1000
+  },
+
+  // ---------- 🧠 Intelligence ----------
+  {
+    id: "statistiques_intelligence_50",
+    groupe: "Statistiques",
+    nom: "Petit(e) futé(e)",
+    emoji: "🧠",
+    desc: "Termine une partie avec une intelligence d'au moins 50.",
+    condition: (j) => j.stats.intelligence >= 50
+  },
+  {
     id: "statistiques_intelligence_100",
     groupe: "Statistiques",
     nom: "Génie",
     emoji: "🧠🧠",
     desc: "Termine une partie avec une intelligence d'au moins 100.",
     condition: (j) => j.stats.intelligence >= 100
+  },
+  {
+    id: "statistiques_intelligence_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu de l'intelligence",
+    emoji: "🧠🧠🧠",
+    desc: "Termine une partie avec une intelligence d'au moins 500.",
+    condition: (j) => j.stats.intelligence >= 500
+  },
+  {
+    id: "statistiques_intelligence_1000",
+    groupe: "Statistiques",
+    nom: "Dieu de l'intelligence",
+    emoji: "🧠🧠🧠🧠",
+    desc: "Termine une partie avec une intelligence d'au moins 1000.",
+    condition: (j) => j.stats.intelligence >= 1000
+  },
+
+  // ---------- ⚡ Vitesse ----------
+  {
+    id: "statistiques_vitesse_50",
+    groupe: "Statistiques",
+    nom: "Pile électrique",
+    emoji: "⚡",
+    desc: "Termine une partie avec une vitesse d'au moins 50.",
+    condition: (j) => j.stats.vitesse >= 50
   },
   {
     id: "statistiques_vitesse_100",
@@ -342,12 +459,54 @@ const SUCCES_CATALOGUE = [
     condition: (j) => j.stats.vitesse >= 100
   },
   {
+    id: "statistiques_vitesse_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu de la vitesse",
+    emoji: "⚡⚡⚡",
+    desc: "Termine une partie avec une vitesse d'au moins 500.",
+    condition: (j) => j.stats.vitesse >= 500
+  },
+  {
+    id: "statistiques_vitesse_1000",
+    groupe: "Statistiques",
+    nom: "Dieu de la vitesse",
+    emoji: "⚡⚡⚡⚡",
+    desc: "Termine une partie avec une vitesse d'au moins 1000.",
+    condition: (j) => j.stats.vitesse >= 1000
+  },
+
+  // ---------- 🏆 Réputation ----------
+  {
+    id: "statistiques_reputation_50",
+    groupe: "Statistiques",
+    nom: "Célèbrité",
+    emoji: "🏆",
+    desc: "Termine une partie avec une reputation d'au moins 50.",
+    condition: (j) => j.stats.reputation >= 50
+  },
+  {
     id: "statistiques_reputation_100",
     groupe: "Statistiques",
     nom: "Une légende",
     emoji: "🏆🏆",
     desc: "Termine une partie avec une reputation d'au moins 100.",
     condition: (j) => j.stats.reputation >= 100
+  },
+  {
+    id: "statistiques_reputation_500",
+    groupe: "Statistiques",
+    nom: "Demi-dieu de la réputation",
+    emoji: "🏆🏆🏆",
+    desc: "Termine une partie avec une réputation d'au moins 500.",
+    condition: (j) => j.stats.reputation >= 500
+  },
+  {
+    id: "statistiques_reputation_1000",
+    groupe: "Statistiques",
+    nom: "Dieu de la réputation",
+    emoji: "🏆🏆🏆🏆",
+    desc: "Termine une partie avec une réputation d'au moins 1000.",
+    condition: (j) => j.stats.reputation >= 1000
   },
 
 

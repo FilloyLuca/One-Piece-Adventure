@@ -268,6 +268,21 @@ function retourMenuPrincipal() {
   if (btnContinuer) btnContinuer.style.display = "inline-block";
 }
 
+// Archive l'arc qui vient de se terminer dans joueur.historique, SANS faire avancer l'âge.
+// Remplace l'appel à avancerAge() dans continuerApresChoix() tant que le système
+// d'âge/retraite est désactivé (structure façon JDR) — avancerAge() reste intacte
+// et appelable ailleurs si besoin (ex: ellipse narrative ponctuelle).
+function archiverArc() {
+  joueur.historique.push({
+    numeroArc: joueur.historique.length + 1,
+    age: joueur.age,
+    evenements: [...joueur.journalArc]
+  });
+  joueur.journalArc = [];
+  mettreAJourFiche();
+  sauvegarderPartie();
+}
+
 // `nombreAnnees` est optionnel (défaut : 1, comme avant). Passer un nombre plus
 // grand (ex: avancerAge(2)) permet de simuler une ellipse narrative — un saut
 // de plusieurs années d'un coup (entraînement en solitaire, coma, exil...).
@@ -287,11 +302,11 @@ function avancerAge(nombreAnnees = 1) {
   // Mettre à jour l'affichage de la fiche (âge +3 points)
   mettreAJourFiche();
 
-  if (joueur.age >= 50) {
-    finRetraite();
-    return true;
-  }
-  return false;
+  // if (joueur.age >= 50) {
+  //   finRetraite();
+  //   return true;
+  // }
+  // return false;
 }
 
 // ---------- POINTS D'ENTRAÎNEMENT (fin d'arc) ----------
@@ -485,12 +500,19 @@ function continuerApresChoix() {
   }
 
   if (resultat.finArc) {
-    const nombreAnnees = resultat.ellipse || 1;
-    if (avancerAge(nombreAnnees)) return;
+    // ⚠️ Avancement automatique de l'âge en fin d'arc désactivé (structure façon JDR).
+    // avancerAge() reste disponible et appelable ailleurs si besoin (ex: ellipse libre ci-dessous).
+    // const nombreAnnees = resultat.ellipse || 1;
+    // if (avancerAge(nombreAnnees)) return; // retraite déclenchée → fin de partie déjà affichée
+
+    archiverArc(); // on archive quand même l'arc, mais sans toucher à joueur.age
+
     if (resultat.suivant === "FIN") {
-      finDePartie(resultat.finPersonnalisee);
+      finDePartie(resultat.finPersonnalisee); // fin de contenu : pas besoin d'allouer des points avant l'écran de fin
       return;
     }
+    // `pointsEntrainement` (optionnel) : personnalise le nombre de points à répartir
+    // pour cette fin d'arc précise (sinon, retombe sur POINTS_ENTRAINEMENT_PAR_ARC).
     demarrerAllocationPoints(resultat.suivant, resultat.pointsEntrainement);
     return;
   }
